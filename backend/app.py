@@ -26,6 +26,8 @@ config_file = os.path.join(data_dir, 'config.json')
 
 sim_file = os.path.join(data_dir, 'sim_distances.json')
 journeys_file = os.path.join(data_dir, 'journeys.json')
+favorites_file = os.path.join(data_dir, 'favorites.json')
+travel_history_file = os.path.join(data_dir, 'travel_history.json')
 
 
 # Ensure data directory exists
@@ -85,6 +87,57 @@ def _journey_write(data):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
     os.replace(tmp, journeys_file)
+
+def _travel_history_init_file():
+    if not os.path.exists(travel_history_file):
+        os.makedirs(os.path.dirname(travel_history_file), exist_ok=True)
+        with open(travel_history_file, "w", encoding="utf-8") as f:
+            json.dump({"history": []}, f, indent=2)
+
+def _travel_history_read():
+    _travel_history_init_file()
+    return _read_json_file(travel_history_file, {"history": []})
+
+def _travel_history_write(data):
+    os.makedirs(os.path.dirname(travel_history_file), exist_ok=True)
+    tmp = travel_history_file + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, travel_history_file)
+
+def _favorites_init_file():
+    if not os.path.exists(favorites_file):
+        os.makedirs(os.path.dirname(favorites_file), exist_ok=True)
+        with open(favorites_file, "w", encoding="utf-8") as f:
+            json.dump({"users": {}}, f, indent=2)
+
+def _favorites_read():
+    _favorites_init_file()
+    return _read_json_file(favorites_file, {"users": {}})
+
+def _favorites_write(data):
+    os.makedirs(os.path.dirname(favorites_file), exist_ok=True)
+    tmp = favorites_file + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, favorites_file)
+
+def _config_init_file():
+    if not os.path.exists(config_file):
+        os.makedirs(os.path.dirname(config_file), exist_ok=True)
+        with open(config_file, "w", encoding="utf-8") as f:
+            json.dump({"admin_theme": "default"}, f, indent=2)
+
+def _config_read():
+    _config_init_file()
+    return _read_json_file(config_file, {"admin_theme": "default"})
+
+def _config_write(data):
+    os.makedirs(os.path.dirname(config_file), exist_ok=True)
+    tmp = config_file + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, config_file)
 
 def _journey_total_distance(segments):
     return sum(float(segment.get("distance") or 0) for segment in segments)
@@ -906,7 +959,27 @@ def admin_dashboard():
         'active_buses': bus_stats['active_buses']
     }
     
-    return render_template('admin_dashboard.html', stats=stats)
+    config = _config_read()
+    return render_template('admin_dashboard.html', stats=stats, admin_theme=config.get('admin_theme', 'default'))
+
+@app.route('/admin/settings', methods=['GET', 'POST'])
+def admin_settings():
+    if not session.get('logged_in'):
+        flash('Please login first!', 'error')
+        return redirect(url_for('login'))
+    if session.get('user_type') != 'admin':
+        flash('Access denied! Admin privileges required.', 'error')
+        return redirect(url_for('passenger_dashboard'))
+
+    config = _config_read()
+    if request.method == 'POST':
+        theme = (request.form.get('admin_theme') or 'default').strip()
+        config['admin_theme'] = theme
+        _config_write(config)
+        flash('Settings updated successfully.', 'success')
+        return redirect(url_for('admin_settings'))
+
+    return render_template('admin_settings.html', admin_theme=config.get('admin_theme', 'default'))
 
 @app.route('/admin/analytics')
 def admin_analytics():
@@ -918,51 +991,6 @@ def admin_analytics():
         return redirect(url_for('passenger_dashboard'))
 
     return render_template('admin_analytics.html')
-
-
-@app.route('/admin/passengers')
-def admin_passengers():
-    if not session.get('logged_in'):
-        flash('Please login first!', 'error')
-        return redirect(url_for('login'))
-    if session.get('user_type') != 'admin':
-        flash('Access denied! Admin privileges required.', 'error')
-        return redirect(url_for('passenger_dashboard'))
-
-    ticket_store._load()
-    tickets = ticket_store.tickets
-    passengers = [u for u in user_manager.get_all_users() if u.get('role') == 'passenger']
-    bus_lookup = {str(b.get('bus_number')): b for b in bus_store.list_buses()}
-
-    ticket_rows = []
-    for ticket in tickets:
-        passenger = next((p for p in passengers if p.get('user_id') == ticket.get('passenger_id')), {})
-        bus_number = str(ticket.get('bus_number') or '')
-        bus = bus_lookup.get(bus_number, {})
-        ticket_rows.append({
-            "ticket_id": ticket.get("ticket_id"),
-            "passenger_name": passenger.get("full_name") or ticket.get("passenger_name"),
-            "passenger_email": passenger.get("email"),
-            "passenger_phone": passenger.get("phone"),
-            "from_stop": ticket.get("from_stop"),
-            "to_stop": ticket.get("to_stop"),
-            "route_path": ticket.get("path", []),
-            "bus_number": bus_number,
-            "bus_timing": bus.get("next_arrival") or bus.get("start_time") or ticket.get("eta"),
-            "fare": ticket.get("fare"),
-            "created_at": ticket.get("created_at"),
-        })
-
-    stats = {
-        "total_passengers": len(passengers),
-        "total_tickets": len(tickets),
-    }
-
-    return render_template(
-        'admin_passengers.html',
-        tickets=ticket_rows,
-        stats=stats,
-    )
 
 
 @app.route('/admin/passengers')
@@ -1351,107 +1379,6 @@ def passenger_travel_history():
     passenger_history = [h for h in history if h.get("passenger_id") == passenger_id]
     return render_template('passenger_travel_history.html', user=session, history=passenger_history)
 
-
-@app.route('/passenger/profile')
-def passenger_profile():
-    if not session.get('logged_in'):
-        flash('Please login first!', 'error')
-        return redirect(url_for('login'))
-    if session.get('user_type') != 'passenger':
-        flash('Passenger access only!', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-    user_data = {
-        'username': session.get('username'),
-        'email': session.get('email'),
-        'phone': session.get('phone'),
-        'full_name': session.get('full_name', 'Passenger'),
-        'login_time': session.get('login_time'),
-    }
-    return render_template('passenger_profile.html', user=user_data)
-
-
-@app.route('/passenger/travel_history')
-def passenger_travel_history():
-    if not session.get('logged_in'):
-        flash('Please login first!', 'error')
-        return redirect(url_for('login'))
-    if session.get('user_type') != 'passenger':
-        flash('Passenger access only!', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-    passenger_id = session.get('user_id', '')
-    history = _travel_history_read().get("history", [])
-    passenger_history = [h for h in history if h.get("passenger_id") == passenger_id]
-    return render_template('passenger_travel_history.html', user=session, history=passenger_history)
-
-
-@app.route('/passenger/profile')
-def passenger_profile():
-    if not session.get('logged_in'):
-        flash('Please login first!', 'error')
-        return redirect(url_for('login'))
-    if session.get('user_type') != 'passenger':
-        flash('Passenger access only!', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-    user_data = {
-        'username': session.get('username'),
-        'email': session.get('email'),
-        'phone': session.get('phone'),
-        'full_name': session.get('full_name', 'Passenger'),
-        'login_time': session.get('login_time'),
-    }
-    return render_template('passenger_profile.html', user=user_data)
-
-
-@app.route('/passenger/travel_history')
-def passenger_travel_history():
-    if not session.get('logged_in'):
-        flash('Please login first!', 'error')
-        return redirect(url_for('login'))
-    if session.get('user_type') != 'passenger':
-        flash('Passenger access only!', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-    passenger_id = session.get('user_id', '')
-    history = _travel_history_read().get("history", [])
-    passenger_history = [h for h in history if h.get("passenger_id") == passenger_id]
-    return render_template('passenger_travel_history.html', user=session, history=passenger_history)
-
-
-@app.route('/passenger/profile')
-def passenger_profile():
-    if not session.get('logged_in'):
-        flash('Please login first!', 'error')
-        return redirect(url_for('login'))
-    if session.get('user_type') != 'passenger':
-        flash('Passenger access only!', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-    user_data = {
-        'username': session.get('username'),
-        'email': session.get('email'),
-        'phone': session.get('phone'),
-        'full_name': session.get('full_name', 'Passenger'),
-        'login_time': session.get('login_time'),
-    }
-    return render_template('passenger_profile.html', user=user_data)
-
-
-@app.route('/passenger/travel_history')
-def passenger_travel_history():
-    if not session.get('logged_in'):
-        flash('Please login first!', 'error')
-        return redirect(url_for('login'))
-    if session.get('user_type') != 'passenger':
-        flash('Passenger access only!', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-    passenger_id = session.get('user_id', '')
-    history = _travel_history_read().get("history", [])
-    passenger_history = [h for h in history if h.get("passenger_id") == passenger_id]
-    return render_template('passenger_travel_history.html', user=session, history=passenger_history)
 
 @app.route('/logout')
 def logout():
@@ -2468,6 +2395,46 @@ def passenger_ticket_detail(ticket_id: str):
     if not ticket:
         return jsonify({'error': 'Ticket not found'}), 404
     return jsonify({'ticket': ticket})
+
+@app.route('/api/passenger/favorites', methods=['GET', 'POST'])
+def passenger_favorites_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+    if session.get('user_type') != 'passenger':
+        return jsonify({'error': 'Passenger access only'}), 403
+
+    data = _favorites_read()
+    users = data.setdefault('users', {})
+    passenger_id = session.get('user_id', '')
+    favorites = users.get(passenger_id, {'routes': [], 'stops': []})
+
+    if request.method == 'GET':
+        return jsonify({'favorites': favorites})
+
+    payload = request.get_json(force=True, silent=True) or {}
+    routes = payload.get('routes')
+    stops = payload.get('stops')
+
+    if routes is not None:
+        favorites['routes'] = list(dict.fromkeys([r for r in routes if r]))
+    if stops is not None:
+        favorites['stops'] = list(dict.fromkeys([s for s in stops if s]))
+
+    action = (payload.get('action') or '').strip().lower()
+    value = (payload.get('value') or '').strip()
+    if action and value:
+        if action == 'add_route' and value not in favorites['routes']:
+            favorites['routes'].append(value)
+        elif action == 'remove_route':
+            favorites['routes'] = [route for route in favorites['routes'] if route != value]
+        elif action == 'add_stop' and value not in favorites['stops']:
+            favorites['stops'].append(value)
+        elif action == 'remove_stop':
+            favorites['stops'] = [stop for stop in favorites['stops'] if stop != value]
+
+    users[passenger_id] = favorites
+    _favorites_write(data)
+    return jsonify({'favorites': favorites})
 
 @app.route('/passenger/book_ticket')
 def passenger_book_ticket_page():
