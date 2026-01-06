@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Dashboard - Smart Transport Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --header-height: 70px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fb;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+        
+        .nav-links {
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            padding: 15px 25px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: white;
+        }
+        
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-left-color: white;
+        }
+        
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+        
+        .header {
+            height: var(--header-height);
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+        
+        .header-left h1 {
+            font-size: 1.8rem;
+            color: #0f766e;
+            font-weight: 700;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .user-details h4 {
+            color: #1e293b;
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+        
+        .user-details p {
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+        
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.2);
+        }
+        
+        .content-area {
+            padding: 30px;
+        }
+        
+        .dashboard-welcome {
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(13, 148, 136, 0.3);
+        }
+        
+        .dashboard-welcome h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+        
+        .dashboard-welcome p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-top: 5px solid #0d9488;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(13, 148, 136, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #0d9488;
+        }
+        
+        .stat-info h3 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+        
+        .stat-info p {
+            color: #64748b;
+            font-size: 1rem;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            color: #1e293b;
+            margin-bottom: 25px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .section-title i {
+            color: #0d9488;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-left: 5px solid #0d9488;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.4rem;
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .feature-card p {
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .feature-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #0d9488;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .feature-btn:hover {
+            background: #0f766e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 148, 136, 0.2);
+        }
+        
+        .quick-actions {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #64748b;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .action-btn:hover {
+            background: #f1f5f9;
+            border-color: #0d9488;
+            color: #0d9488;
+            transform: translateY(-5px);
+        }
+        
+        .action-btn i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        .action-btn span {
+            display: block;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .recent-activity {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 50px;
+            height: 50px;
+            background: #f8fafc;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0d9488;
+            font-size: 1.2rem;
+        }
+        
+        .activity-content h4 {
+            color: #1e293b;
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+        
+        .activity-content p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        .activity-time {
+            margin-left: auto;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar-header h2,
+            .sidebar-header p,
+            .nav-item span {
+                display: none;
+            }
+            
+            .nav-item {
+                justify-content: center;
+                padding: 20px;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 20px;
+            }
+            
+            .content-area {
+                padding: 20px;
+            }
+            
+            .dashboard-welcome h2 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid,
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-details {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 60px;
+            }
+            
+            .main-content {
+                margin-left: 60px;
+            }
+            
+            .dashboard-welcome {
+                padding: 25px;
+            }
+            
+            .stat-card,
+            .feature-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Welcome!</h2>
+            <p>{{ user.full_name }}</p>
+        </div>
+        
+        <div class="nav-links">
+            <a href="#" class="nav-item active" id="dashboardNav">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('passenger_my_tickets') }}" class="nav-item" id="ticketsNav">
+                <i class="fas fa-ticket-alt"></i>
+                <span>My Tickets</span>
+            </a>
+            <a href="#" class="nav-item" id="findRouteNav">
+                <i class="fas fa-route"></i>
+                <span>Find Route</span>
+            </a>
+            <a href="#" class="nav-item" id="liveTrackingNav">
+                <i class="fas fa-bus"></i>
+                <span>Live Tracking</span>
+            </a>
+            <a href="#" class="nav-item" id="historyNav">
+                <i class="fas fa-history"></i>
+                <span>Travel History</span>
+            </a>
+            <a href="#" class="nav-item" id="profileNav">
+                <i class="fas fa-user-cog"></i>
+                <span>Profile</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item" id="logoutNav">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Passenger Dashboard</h1>
+            </div>
+            
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">
+                        {{ user.full_name[0] if user.full_name else 'U' }}
+                    </div>
+                    <div class="user-details">
+                        <h4 id="userName">{{ user.full_name }}</h4>
+                        <p>Passenger</p>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutButton">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Welcome Section -->
+            <div class="dashboard-welcome">
+                <h2 id="welcomeMessage">Welcome, {{ user.full_name }}!</h2>
+                <p>Manage your travel, book tickets, and explore routes with our intelligent transport system.</p>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="ticketCount">0</h3>
+                        <p>Active Tickets</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="routeCount">0</h3>
+                        <p>Routes Taken</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="currentTime">Now</h3>
+                        <p>Current Time</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Available Features -->
+            <h2 class="section-title">
+                <i class="fas fa-star"></i> Available Features
+            </h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Find Route</h3>
+                    <p>Find the shortest and most efficient route between any two stops using our advanced graph algorithms.</p>
+                    <a href="#" class="feature-btn" id="findRouteBtn">Find Route</a>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <h3>Book Ticket</h3>
+                    <p>Book your bus tickets instantly with O(1) lookup time using our hash table technology.</p>
+                    <a href="#" class="feature-btn" id="bookTicketBtn">Book Now</a>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h3>Live Tracking</h3>
+                    <p>Track your bus in real-time with accurate ETAs and live location updates.</p>
+                    <a href="#" class="feature-btn" id="trackBusBtn">Track Bus</a>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3>Travel History</h3>
+                    <p>View your complete travel history stored efficiently using tree data structures.</p>
+                    <a href="#" class="feature-btn" id="viewHistoryBtn">View History</a>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h2 class="section-title">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </h2>
+                
+                <div class="actions-grid">
+                    <a href="#" class="action-btn" id="planJourneyBtn">
+                        <i class="fas fa-search-location"></i>
+                        <span>Plan Journey</span>
+                    </a>
+                    
+                    <a href="#" class="action-btn" id="scanTicketBtn">
+                        <i class="fas fa-qrcode"></i>
+                        <span>Scan Ticket</span>
+                    </a>
+                    
+                    <a href="#" class="action-btn" id="notificationsBtn">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                    
+                    <a href="#" class="action-btn" id="helpCenterBtn">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Help Center</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <h2 class="section-title">
+                    <i class="fas fa-clipboard-list"></i> Recent Activity
+                </h2>
+                
+                <div class="activity-list" id="activityList">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>Account Login</h4>
+                            <p>Successfully logged into your account</p>
+                        </div>
+                        <div class="activity-time" id="loginTime">Just now</div>
+                    </div>
+                    
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>Welcome Message</h4>
+                            <p>Welcome to Intelligent Transport System</p>
+                        </div>
+                        <div class="activity-time">Today</div>
+                    </div>
+                    
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>New Features</h4>
+                            <p>Explore our new DSA-powered features</p>
+                        </div>
+                        <div class="activity-time">Today</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Passenger Dashboard loaded');
+            
+            // Update current time immediately
+            updateCurrentTime();
+            
+            // Setup time updater
+            setupTimeUpdater();
+            
+            // Setup logout button
+            setupLogoutButton();
+            
+            // Setup navigation
+            setupNavigation();
+            
+            // Setup feature buttons
+            setupFeatureButtons();
+            
+            // Setup quick action buttons
+            setupQuickActions();
+            
+            // Load user data
+            loadUserData();
+        });
+        
+        // Update current time
+        function updateCurrentTime() {
+            try {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                const currentTimeElement = document.getElementById('currentTime');
+                if (currentTimeElement) {
+                    currentTimeElement.textContent = timeString;
+                }
+            } catch (error) {
+                console.error('Error updating time:', error);
+            }
+        }
+        
+        // Setup time updater (runs every second)
+        function setupTimeUpdater() {
+            // Update immediately
+            updateCurrentTime();
+            
+            // Update every second
+            setInterval(updateCurrentTime, 1000);
+        }
+        
+        // Setup logout button
+        function setupLogoutButton() {
+            const logoutButton = document.getElementById('logoutButton');
+            const logoutNav = document.getElementById('logoutNav');
+            
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    confirmLogout();
+                });
+            }
+            
+            if (logoutNav) {
+                logoutNav.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    confirmLogout();
+                });
+            }
+        }
+        
+        // Confirm logout
+        function confirmLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Add loading state to button
+                const logoutButton = document.getElementById('logoutButton');
+                if (logoutButton) {
+                    logoutButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+                    logoutButton.disabled = true;
+                }
+                
+                // Redirect to logout
+                window.location.href = '{{ url_for("logout") }}';
+            }
+        }
+        
+        // Setup navigation
+        function setupNavigation() {
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    
+                    // Don't prevent default for actual links
+                    if (href && href !== '#' && !href.includes('javascript:')) {
+                        return;
+                    }
+                    
+                    e.preventDefault();
+                    
+                    // Remove active class from all items
+                    navItems.forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Handle different navigation items
+                    const id = this.id;
+                    switch(id) {
+                        case 'dashboardNav':
+                            showDashboard();
+                            break;
+                        case 'ticketsNav':
+                            showMyTickets();
+                            break;
+                        case 'findRouteNav':
+                            showFindRoute();
+                            break;
+                        case 'liveTrackingNav':
+                            showLiveTracking();
+                            break;
+                        case 'historyNav':
+                            showTravelHistory();
+                            break;
+                        case 'profileNav':
+                            showProfile();
+                            break;
+                    }
+                });
+            });
+        }
+        
+        // Setup feature buttons
+        function setupFeatureButtons() {
+            // Find Route button
+            const findRouteBtn = document.getElementById('findRouteBtn');
+            if (findRouteBtn) {
+                findRouteBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showFindRoute();
+                });
+            }
+            
+            // Book Ticket button
+            const bookTicketBtn = document.getElementById('bookTicketBtn');
+            if (bookTicketBtn) {
+                bookTicketBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showBookTicket();
+                });
+            }
+            
+            // Track Bus button
+            const trackBusBtn = document.getElementById('trackBusBtn');
+            if (trackBusBtn) {
+                trackBusBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showLiveTracking();
+                });
+            }
+            
+            // View History button
+            const viewHistoryBtn = document.getElementById('viewHistoryBtn');
+            if (viewHistoryBtn) {
+                viewHistoryBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showTravelHistory();
+                });
+            }
+        }
+        
+        // Setup quick action buttons
+        function setupQuickActions() {
+            // Plan Journey
+            const planJourneyBtn = document.getElementById('planJourneyBtn');
+            if (planJourneyBtn) {
+                planJourneyBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('Plan Journey feature coming soon!');
+                });
+            }
+            
+            // Scan Ticket
+            const scanTicketBtn = document.getElementById('scanTicketBtn');
+            if (scanTicketBtn) {
+                scanTicketBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('Scan Ticket feature coming soon!');
+                });
+            }
+            
+            // Notifications
+            const notificationsBtn = document.getElementById('notificationsBtn');
+            if (notificationsBtn) {
+                notificationsBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('Notifications feature coming soon!');
+                });
+            }
+            
+            // Help Center
+            const helpCenterBtn = document.getElementById('helpCenterBtn');
+            if (helpCenterBtn) {
+                helpCenterBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('Help Center feature coming soon!');
+                });
+            }
+        }
+        
+        // Load user data
+        function loadUserData() {
+            try {
+                // Update welcome message with current time
+                const now = new Date();
+                const hours = now.getHours();
+                let greeting = 'Welcome';
+                
+                if (hours < 12) {
+                    greeting = 'Good morning';
+                } else if (hours < 18) {
+                    greeting = 'Good afternoon';
+                } else {
+                    greeting = 'Good evening';
+                }
+                
+                const welcomeMessage = document.getElementById('welcomeMessage');
+                if (welcomeMessage) {
+                    welcomeMessage.textContent = `${greeting}, {{ user.full_name }}!`;
+                }
+                
+                // Update login time in activity list
+                const loginTimeElement = document.getElementById('loginTime');
+                if (loginTimeElement) {
+                    const timeString = now.toLocaleTimeString();
+                    loginTimeElement.textContent = timeString;
+                }
+                
+                // Update user avatar with first letter
+                const userAvatar = document.getElementById('userAvatar');
+                if (userAvatar && !userAvatar.textContent.trim()) {
+                    userAvatar.textContent = '{{ user.full_name[0] if user.full_name else "U" }}';
+                }
+                
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+        
+        // Navigation functions (placeholder implementations)
+        function showDashboard() {
+            // Already on dashboard
+            console.log('Showing dashboard');
+        }
+        
+        function showMyTickets() {
+            alert('My Tickets feature coming soon!');
+        }
+        
+        function showFindRoute() {
+            alert('Find Route feature coming soon!');
+        }
+        
+        function showLiveTracking() {
+            alert('Live Tracking feature coming soon!');
+        }
+        
+        function showTravelHistory() {
+            alert('Travel History feature coming soon!');
+        }
+        
+        function showProfile() {
+            alert('Profile feature coming soon!');
+        }
+        
+        function showBookTicket() {
+            alert('Book Ticket feature coming soon!');
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+L for logout
+            if (e.ctrlKey && e.key === 'l') {
+                e.preventDefault();
+                confirmLogout();
+            }
+            
+            // F1 for help
+            if (e.key === 'F1') {
+                e.preventDefault();
+                alert('Help: Press Ctrl+L to logout, F5 to refresh');
+            }
+        });
+        
+        // Show notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // Add CSS animations for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Auto-refresh dashboard every minute
+        setInterval(() => {
+            console.log('Auto-refreshing dashboard...');
+            // You can add data refresh logic here
+        }, 60000);
+    </script>
+</body>
+</html>

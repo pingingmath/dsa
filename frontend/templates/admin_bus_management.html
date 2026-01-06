@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Management - Smart Transport Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --header-height: 70px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fb;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #60a5fa, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        
+        .nav-links {
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            padding: 15px 25px;
+            color: #cbd5e1;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+        
+        .nav-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: white;
+            border-left-color: #3b82f6;
+        }
+        
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: white;
+            border-left-color: #3b82f6;
+        }
+        
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+        
+        .header {
+            height: var(--header-height);
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+        
+        .header-left h1 {
+            font-size: 1.8rem;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .user-details h4 {
+            color: #1e293b;
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+        
+        .user-details p {
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+        
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.2);
+        }
+        
+        .content-area {
+            padding: 30px;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+        
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+        
+        .page-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-top: 4px solid;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+        
+        .stat-card.total {
+            border-top-color: #3b82f6;
+        }
+        
+        .stat-card.min-heap {
+            border-top-color: #10b981;
+        }
+        
+        .stat-card.max-heap {
+            border-top-color: #f59e0b;
+        }
+        
+        .stat-card.status {
+            border-top-color: #8b5cf6;
+        }
+        
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #3b82f6;
+        }
+        
+        .min-heap .stat-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .max-heap .stat-icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+        
+        .status .stat-icon {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+        
+        .stat-info h3 {
+            font-size: 1.2rem;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        
+        .stat-info p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        
+        .heap-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: #1e293b;
+            font-weight: 700;
+        }
+        
+        .heap-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .heap-node {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-width: 200px;
+            transition: all 0.3s ease;
+        }
+        
+        .heap-node.min-heap {
+            border-color: #10b981;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.1);
+        }
+        
+        .heap-node.max-heap {
+            border-color: #f59e0b;
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.1);
+        }
+        
+        .heap-node:hover {
+            transform: translateY(-5px);
+        }
+        
+        .node-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        
+        .node-arrival {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #3b82f6;
+            margin-bottom: 5px;
+        }
+        
+        .node-priority {
+            font-size: 0.9rem;
+            color: #f59e0b;
+            font-weight: 600;
+        }
+        
+        .bus-table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            padding: 25px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-header h3 {
+            font-size: 1.5rem;
+            color: #1e293b;
+            font-weight: 700;
+        }
+        
+        .table-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box input {
+            padding: 10px 15px 10px 40px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            width: 250px;
+            font-size: 1rem;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #f8fafc;
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        tr:hover {
+            background: #f8fafc;
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .status-inactive {
+            background: rgba(148, 163, 184, 0.1);
+            color: #64748b;
+        }
+        
+        .status-maintenance {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 6px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-edit {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+        
+        .btn-edit:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+        
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+        
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+        
+        .btn-allocate {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .btn-allocate:hover {
+            background: rgba(16, 185, 129, 0.2);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            animation: modalSlide 0.3s ease;
+        }
+        
+        @keyframes modalSlide {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-body {
+            padding: 25px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #475569;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar-header h2,
+            .sidebar-header p,
+            .nav-item span {
+                display: none;
+            }
+            
+            .nav-item {
+                justify-content: center;
+                padding: 20px;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .table-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .search-box input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Transport Hub</h2>
+            <p>Bus Management</p>
+        </div>
+        
+        <div class="nav-links">
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin_bus_management') }}" class="nav-item active">
+                <i class="fas fa-bus"></i>
+                <span>Bus Management</span>
+            </a>
+            <a href="{{ url_for('admin_routes') }}" class="nav-item">
+                <i class="fas fa-route"></i>
+                <span>Routes</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Bus Management System</h1>
+            </div>
+            
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="user-details">
+                        <h4>System Administrator</h4>
+                        <p>Bus Management</p>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="window.location.href='{{ url_for('logout') }}'">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>Bus Fleet Management</h1>
+                <p>Manage buses, allocate routes, and monitor arrivals using Min Heap (earliest arrival) and Max Heap (peak hour priority)</p>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card total">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-bus"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Buses</h3>
+                            <p>Active in fleet</p>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ stats.total_buses }}</div>
+                </div>
+                
+                <div class="stat-card min-heap">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Next Arrival</h3>
+                            <p>Min Heap - Earliest</p>
+                        </div>
+                    </div>
+                    <div class="stat-value">
+                        {% if next_arrival_bus %}
+                            {{ next_arrival_bus.next_arrival }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="stat-card max-heap">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Priority Bus</h3>
+                            <p>Max Heap - Peak Hour</p>
+                        </div>
+                    </div>
+                    <div class="stat-value">
+                        {% if priority_bus %}
+                            {{ priority_bus.bus_number }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="stat-card status">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ stats.average_load }}%</h3>
+                            <p>Average Load</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Heap Visualization -->
+            <div class="heap-section">
+                <div class="section-header">
+                    <h2>Bus Arrival Priority System</h2>
+                    <button class="btn btn-primary" onclick="refreshHeapData()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+                
+                <div class="heap-container">
+                    <!-- Min Heap (Earliest Arrival) -->
+                    <div class="heap-node min-heap">
+                        <div class="node-header">Min Heap - Earliest Arrival</div>
+                        <div class="node-arrival">
+                            {% if next_arrival_bus %}
+                                {{ next_arrival_bus.next_arrival }}
+                            {% else %}
+                                --
+                            {% endif %}
+                        </div>
+                        <div class="node-priority">
+                            {% if next_arrival_bus %}
+                                Bus #{{ next_arrival_bus.bus_number }}
+                            {% else %}
+                                No Bus Available
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Max Heap (Peak Hour Priority) -->
+                    <div class="heap-node max-heap">
+                        <div class="node-header">Max Heap - Peak Hour Priority</div>
+                        <div class="node-arrival">
+                            {% if priority_bus %}
+                                {{ priority_bus.next_arrival }}
+                            {% else %}
+                                --
+                            {% endif %}
+                        </div>
+                        <div class="node-priority">
+                            {% if priority_bus %}
+                                Bus #{{ priority_bus.bus_number }}
+                            {% else %}
+                                No Bus Available
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bus Table -->
+            <div class="bus-table-container">
+                <div class="table-header">
+                    <h3>Bus Fleet</h3>
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Search buses..." 
+                                   onkeyup="searchBuses()">
+                        </div>
+                        <select id="statusFilter" onchange="filterBuses()">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="openAddBusModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Bus
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="busTable">
+                        <thead>
+                            <tr>
+                                <th>Bus No.</th>
+                                <th>Plate No.</th>
+                                <th>Driver</th>
+                                <th>Route</th>
+                                <th>Capacity</th>
+                                <th>Next Arrival</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bus in buses %}
+                            <tr>
+                                <td>{{ bus.bus_number }}</td>
+                                <td>{{ bus.plate_number }}</td>
+                                <td>{{ bus.driver_name }}</td>
+                                <td>
+                                    {% if bus.route_name and bus.route_name != 'Unknown' %}
+                                        {{ bus.route_name }}
+                                    {% else %}
+                                        <span style="color: #94a3b8;">Not Assigned</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ bus.capacity }}</td>
+                                <td>{{ bus.next_arrival }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ bus.status }}">
+                                        {{ bus.status|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-icon btn-edit" 
+                                                onclick="editBus({{ bus.id }})"
+                                                title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-icon btn-allocate"
+                                                onclick="allocateBus({{ bus.id }})"
+                                                title="Allocate to Route">
+                                            <i class="fas fa-route"></i>
+                                        </button>
+                                        <button class="btn-icon btn-delete"
+                                                onclick="deleteBus({{ bus.id }})"
+                                                title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Bus Modal -->
+    <div id="addBusModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Bus</h3>
+                <button class="close-modal" onclick="closeAddBusModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addBusForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Bus Number *</label>
+                            <input type="text" name="bus_number" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Plate Number *</label>
+                            <input type="text" name="plate_number" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Driver Name *</label>
+                            <input type="text" name="driver_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Driver Contact</label>
+                            <input type="tel" name="driver_contact">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Capacity *</label>
+                            <input type="number" name="capacity" min="20" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Bus Type</label>
+                            <select name="type">
+                                <option value="regular">Regular</option>
+                                <option value="air_conditioned">Air Conditioned</option>
+                                <option value="express">Express</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Next Arrival Time</label>
+                            <input type="time" name="next_arrival" value="08:00">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select name="status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="maintenance">Maintenance</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeAddBusModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveBus()">Save Bus</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Allocate Bus Modal -->
+    <div id="allocateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Allocate Bus to Route</h3>
+                <button class="close-modal" onclick="closeAllocateModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Select Route</label>
+                    <select id="routeSelect" class="form-control">
+                        <option value="">Select a route</option>
+                        {% for route in routes %}
+                        <option value="{{ route.id }}">
+                            {{ route.name }} ({{ route.total_stops }} stops)
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Bus Information</label>
+                    <div id="busInfo" style="background: #f8fafc; padding: 15px; border-radius: 8px;">
+                        Select a bus first
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeAllocateModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveAllocation()">Allocate</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentBusId = null;
+
+function openAddBusModal() {
+    document.getElementById('addBusModal').style.display = 'flex';
+}
+
+function closeAddBusModal() {
+    document.getElementById('addBusModal').style.display = 'none';
+    document.getElementById('addBusForm').reset();
+}
+
+function openAllocateModal(busId) {
+    currentBusId = busId;
+    document.getElementById('allocateModal').style.display = 'flex';
+    loadBusInfo(busId);
+    
+    // DEBUG: Check dropdown values
+    console.log('=== DEBUG: Opening Allocate Modal ===');
+    const routeSelect = document.getElementById('routeSelect');
+    console.log('Dropdown options count:', routeSelect.options.length);
+    for (let i = 0; i < routeSelect.options.length; i++) {
+        console.log(`Option ${i}: value="${routeSelect.options[i].value}", text="${routeSelect.options[i].text}"`);
+    }
+    console.log('=== DEBUG END ===');
+}
+
+function closeAllocateModal() {
+    currentBusId = null;
+    document.getElementById('allocateModal').style.display = 'none';
+}
+
+function loadBusInfo(busId) {
+    fetch(`/admin/api/buses/${busId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.bus) {
+                const bus = data.bus;
+                document.getElementById('busInfo').innerHTML = `
+                    <strong>Bus ${bus.bus_number}</strong><br>
+                    Plate: ${bus.plate_number}<br>
+                    Driver: ${bus.driver_name}<br>
+                    Current Route: ${bus.route_name || 'Not assigned'}<br>
+                    Capacity: ${bus.capacity} passengers
+                `;
+            } else {
+                document.getElementById('busInfo').innerHTML = 'Bus not found';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading bus info:', error);
+            document.getElementById('busInfo').innerHTML = 'Error loading bus information';
+        });
+}
+
+function saveBus() {
+    const form = document.getElementById('addBusForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    
+    // Add validation
+    if (!data.bus_number || !data.plate_number || !data.driver_name || !data.capacity) {
+        alert('Please fill all required fields');
+        return;
+    }
+    
+    fetch('/admin/api/buses', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Bus added successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error adding bus: ' + error.message);
+    });
+}
+
+function editBus(busId) {
+    if (confirm('Edit bus ' + busId + '?')) {
+        // For now, show a simple edit alert
+        alert('Edit feature will be available in the next update!');
+        // In future, you can implement full edit functionality here
+    }
+}
+
+function allocateBus(busId) {
+    currentBusId = busId;
+    openAllocateModal(busId);
+}
+
+function saveAllocation() {
+    const routeSelect = document.getElementById('routeSelect');
+    const routeId = routeSelect.value;
+    const routeText = routeSelect.options[routeSelect.selectedIndex].text;
+    
+    console.log('=== DEBUG: Allocation Data ===');
+    console.log('Selected route ID:', routeId);
+    console.log('Selected route text:', routeText);
+    console.log('Current bus ID:', currentBusId);
+    console.log('Route ID type:', typeof routeId);
+    
+    if (!routeId) {
+        alert('Please select a route');
+        return;
+    }
+    
+    if (!currentBusId) {
+        alert('No bus selected');
+        return;
+    }
+    
+    // Check if routeId is a UUID (not a number)
+    // UUID pattern: 8-4-4-4-12 hex digits
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    
+    if (!uuidPattern.test(routeId)) {
+        console.warn('Warning: Route ID does not look like a valid UUID:', routeId);
+        alert('Invalid route selected. Please select a valid route from the dropdown.');
+        return;
+    }
+    
+    // Extract route name (remove stops count from text)
+    const routeName = routeText.split('(')[0].trim();
+    
+    console.log('Sending allocation request with:', {
+        bus_id: parseInt(currentBusId),
+        route_id: routeId,  // Keep as string (UUID)
+        route_name: routeName
+    });
+    
+    // Send allocation request - DO NOT parse route_id as int!
+    fetch('/admin/api/buses/allocate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            bus_id: parseInt(currentBusId),  // Bus ID is integer
+            route_id: routeId  // Route ID is UUID string
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            alert('Bus allocated successfully!');
+            closeAllocateModal();
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Allocation error:', error);
+        alert('Error allocating bus: ' + error.message);
+    });
+}
+
+function deleteBus(busId) {
+    if (confirm('Are you sure you want to delete this bus?')) {
+        fetch(`/admin/api/buses/${busId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Bus deleted successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error deleting bus: ' + error.message);
+        });
+    }
+}
+
+function searchBuses() {
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#busTable tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(input) ? '' : 'none';
+    });
+}
+
+function filterBuses() {
+    const status = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('#busTable tbody tr');
+    
+    rows.forEach(row => {
+        if (!status) {
+            row.style.display = '';
+            return;
+        }
+        
+        const statusBadge = row.querySelector('.status-badge');
+        if (statusBadge) {
+            const rowStatus = statusBadge.className;
+            row.style.display = rowStatus.includes(`status-${status}`) ? '' : 'none';
+        }
+    });
+}
+
+function refreshHeapData() {
+    fetch('/admin/api/buses/next_arrival')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Heap data refreshed!');
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing heap data:', error);
+            alert('Error refreshing heap data');
+        });
+}
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl+A to add bus
+    if (e.ctrlKey && e.key === 'a') {
+        e.preventDefault();
+        openAddBusModal();
+    }
+    
+    // Escape to close modal
+    if (e.key === 'Escape') {
+        closeAddBusModal();
+        closeAllocateModal();
+    }
+});
+
+// DEBUG FUNCTION: Check dropdown values on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== INITIAL DEBUG: Checking dropdown ===');
+    const routeSelect = document.getElementById('routeSelect');
+    if (routeSelect) {
+        console.log('Route select element found');
+        console.log('Number of options:', routeSelect.options.length);
+        
+        // Check if options have UUID values
+        for (let i = 0; i < routeSelect.options.length; i++) {
+            const option = routeSelect.options[i];
+            const value = option.value;
+            const text = option.text;
+            
+            console.log(`Option ${i}:`);
+            console.log(`  Value: "${value}"`);
+            console.log(`  Text: "${text}"`);
+            console.log(`  Is UUID: ${/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)}`);
+        }
+    } else {
+        console.log('Route select element NOT found!');
+    }
+    console.log('=== DEBUG END ===');
+});
+    </script>
+</body>
+</html>

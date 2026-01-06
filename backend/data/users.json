@@ -1,0 +1,62 @@
+{
+  "users": [
+    {
+      "user_id": "ffc61ca5-c82f-4ad2-b561-b5b069762b97",
+      "username": "ALITALHA",
+      "email": "alitalhahashmi@gmail.com",
+      "phone": "09876765434",
+      "full_name": "HASHMI",
+      "password_hash": "b69f9491c8b2a41276c0c2caafb89938605bc69a601b5a62db01777f47325862",
+      "role": "passenger",
+      "created_at": "2026-01-04T13:21:17.301696",
+      "last_login": "2026-01-07T00:40:54.586350",
+      "is_active": true
+    },
+    {
+      "user_id": "0851bc4f-0714-44d7-a64b-4af741119ef3",
+      "username": "kamran",
+      "email": "k@gmail.com",
+      "phone": "09878987654",
+      "full_name": "kamran Shafique",
+      "password_hash": "e59a17f74cf9f71bd6f36af5ac4c7a1f014d6ec482433cf507075fcb349ebf8f",
+      "role": "passenger",
+      "created_at": "2026-01-04T13:59:01.174314",
+      "last_login": "2026-01-04T13:59:08.063637",
+      "is_active": true
+    }
+  ],
+  "last_updated": "2026-01-07T00:40:54.586402",
+  "total_users": 2,
+  "hash_table_stats": {
+    "username_index": {
+      "capacity": 53,
+      "size": 2,
+      "load_factor": 0.03773584905660377,
+      "total_buckets": 53,
+      "empty_buckets": 51,
+      "used_buckets": 2,
+      "max_chain_length": 1,
+      "avg_chain_length": 1.0
+    },
+    "email_index": {
+      "capacity": 53,
+      "size": 2,
+      "load_factor": 0.03773584905660377,
+      "total_buckets": 53,
+      "empty_buckets": 51,
+      "used_buckets": 2,
+      "max_chain_length": 1,
+      "avg_chain_length": 1.0
+    },
+    "user_id_index": {
+      "capacity": 53,
+      "size": 2,
+      "load_factor": 0.03773584905660377,
+      "total_buckets": 53,
+      "empty_buckets": 51,
+      "used_buckets": 2,
+      "max_chain_length": 1,
+      "avg_chain_length": 1.0
+    }
+  }
+}

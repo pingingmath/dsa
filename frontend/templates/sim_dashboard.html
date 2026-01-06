@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transport Hub Simulation - Live Map</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <style>
+      :root {
+        --bg: #0b1220;
+        --card: #0f172a;
+        --card2: #111c33;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --accent: #22c55e;
+        --accent2: #60a5fa;
+        --danger: #ef4444;
+        --border: rgba(255, 255, 255, 0.08);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: radial-gradient(
+          1200px 800px at 20% 10%,
+          #13224a 0%,
+          var(--bg) 55%,
+          #070b14 100%
+        );
+        color: var(--text);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        min-height: 100vh;
+        overflow-x: hidden;
+        display: flex;
+      }
+
+      .sidebar {
+        width: 250px;
+        background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%);
+        color: white;
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        overflow-y: auto;
+        box-shadow: 5px 0 20px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+      }
+
+      .sidebar-header {
+        padding: 30px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+      }
+
+      .sidebar-header h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #60a5fa, #93c5fd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 5px;
+      }
+
+      .sidebar-header p {
+        color: #94a3b8;
+        font-size: 0.9rem;
+      }
+
+      .nav-links {
+        padding: 20px 0;
+      }
+
+      .nav-item {
+        padding: 15px 25px;
+        color: #cbd5e1;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+      }
+
+      .nav-item:hover {
+        background: rgba(59, 130, 246, 0.1);
+        color: white;
+        border-left-color: #3b82f6;
+      }
+
+      .nav-item.active {
+        background: rgba(59, 130, 246, 0.2);
+        color: white;
+        border-left-color: #3b82f6;
+      }
+
+      .nav-item i {
+        width: 20px;
+        text-align: center;
+      }
+
+      .main-content {
+        flex: 1;
+        margin-left: 250px;
+        min-height: 100vh;
+        width: calc(100% - 250px);
+      }
+
+      .wrap {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 18px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.06) 0%,
+          rgba(255, 255, 255, 0.03) 100%
+        );
+        backdrop-filter: blur(10px);
+        margin-bottom: 16px;
+      }
+
+      .title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .title h2 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.2px;
+        background: linear-gradient(90deg, #60a5fa, #22c55e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .title .sub {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 12px;
+        padding: 10px 12px;
+        cursor: pointer;
+        font-weight: 800;
+        color: #07121f;
+        background: var(--accent);
+        box-shadow: 0 10px 20px rgba(34, 197, 94, 0.18);
+        transition: all 0.2s;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(34, 197, 94, 0.25);
+      }
+
+      .btn.secondary {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        box-shadow: none;
+        border: 1px solid var(--border);
+      }
+
+      .btn.secondary:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .btn.danger {
+        background: rgba(239, 68, 68, 0.12);
+        color: #fecaca;
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        box-shadow: none;
+      }
+
+      .btn.danger:hover {
+        background: rgba(239, 68, 68, 0.18);
+      }
+
+      .btn:active {
+        transform: translateY(1px);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 420px 1fr;
+        gap: 16px;
+        align-items: start;
+        min-height: 780px;
+      }
+
+      .card {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.06) 0%,
+          rgba(255, 255, 255, 0.03) 100%
+        );
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        backdrop-filter: blur(10px);
+        height: 100%;
+        overflow-y: auto;
+      }
+
+      .sectionTitle {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 4px 0 12px;
+      }
+
+      .sectionTitle h3 {
+        margin: 0;
+        font-size: 14px;
+        color: #e2e8f0;
+        letter-spacing: 0.3px;
+      }
+
+      .pill {
+        font-size: 11px;
+        color: #cbd5e1;
+        border: 1px solid var(--border);
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.12);
+        white-space: nowrap;
+      }
+
+      label {
+        display: block;
+        margin-top: 10px;
+        font-weight: 700;
+        font-size: 12px;
+        color: #dbeafe;
+      }
+
+      select,
+      input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 6px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(2, 6, 23, 0.6);
+        color: var(--text);
+        outline: none;
+        transition: all 0.2s;
+      }
+
+      select:focus,
+      input:focus {
+        border-color: var(--accent2);
+        box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.1);
+      }
+
+      input::placeholder {
+        color: rgba(148, 163, 184, 0.8);
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+      }
+
+      .row > div {
+        flex: 1;
+      }
+
+      .kpis {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .kpi {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 10px;
+        background: rgba(2, 6, 23, 0.35);
+        transition: all 0.2s;
+      }
+
+      .kpi:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent2);
+      }
+
+      .kpi .k {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .kpi .v {
+        font-weight: 900;
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      .toggles {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 10px;
+        background: rgba(2, 6, 23, 0.35);
+        font-size: 12px;
+        color: #e2e8f0;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .toggle:hover {
+        border-color: var(--accent2);
+        background: rgba(96, 165, 250, 0.05);
+      }
+
+      .toggle input {
+        width: auto;
+        margin: 0;
+        accent-color: var(--accent);
+      }
+
+      .msg {
+        margin-top: 10px;
+        min-height: 18px;
+        color: var(--muted);
+        font-size: 12px;
+        padding: 8px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.2);
+      }
+
+      .canvasCard {
+        position: relative;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+        min-height: 720px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.2);
+        z-index: 1;
+      }
+
+      /* Custom Leaflet marker styles */
+      .stop-icon {
+        background: rgba(30, 64, 175, 0.9);
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        width: 48px !important;
+        height: 48px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-weight: bold;
+        color: white;
+        box-shadow:
+          0 10px 24px rgba(15, 23, 42, 0.6),
+          0 0 18px rgba(59, 130, 246, 0.45);
+        font-size: 18px;
+        animation: float 3.6s ease-in-out infinite;
+      }
+
+      .stop-icon.start {
+        background: rgba(34, 197, 94, 0.95);
+        animation: pulse-green 2s infinite;
+      }
+
+      .stop-icon.end {
+        background: rgba(239, 68, 68, 0.95);
+        animation: pulse-red 2s infinite;
+      }
+
+      .stop-icon.path {
+        background: rgba(16, 185, 129, 0.92);
+      }
+
+      .stop-icon.explored {
+        background: rgba(96, 165, 250, 0.78);
+      }
+
+      .bus-icon {
+        background: rgba(245, 158, 11, 0.95);
+        border: 3px solid rgba(255, 255, 255, 0.95);
+        border-radius: 50%;
+        width: 62px !important;
+        height: 62px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 28px;
+        box-shadow:
+          0 14px 28px rgba(245, 158, 11, 0.45),
+          0 0 20px rgba(251, 191, 36, 0.4);
+        z-index: 1000;
+      }
+
+      @keyframes pulse-green {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+      }
+
+      @keyframes pulse-red {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-4px); }
+      }
+
+      .road-line {
+        stroke: #2563eb;
+        stroke-width: 9;
+        stroke-dasharray: none;
+        fill: none;
+        opacity: 0.85;
+      }
+
+      .road-line.path {
+        stroke: #10b981;
+        stroke-width: 12;
+        opacity: 0.95;
+        stroke-dasharray: 14 10;
+        animation: dash 1.2s linear infinite;
+      }
+
+      .road-line.casing {
+        stroke: rgba(15, 23, 42, 0.75);
+        stroke-width: 14;
+        opacity: 0.55;
+      }
+
+      .road-line.path.casing {
+        stroke: rgba(15, 118, 110, 0.6);
+        stroke-width: 18;
+        opacity: 0.5;
+      }
+
+      .road-line.glow {
+        filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.5));
+      }
+
+      .road-line.path.glow {
+        filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.7));
+      }
+
+      @keyframes dash {
+        to { stroke-dashoffset: 20; }
+      }
+
+      .weight-label {
+        background: rgba(248, 250, 252, 0.95);
+        color: #0f172a;
+        border: 1px solid rgba(15, 23, 42, 0.1);
+        border-radius: 12px;
+        padding: 4px 8px;
+        font: 700 11px system-ui;
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 0 8px 16px rgba(15, 23, 42, 0.2);
+      }
+
+      .stop-tooltip {
+        background: rgba(15, 23, 42, 0.9);
+        color: #e2e8f0;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 10px;
+        padding: 6px 10px;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.35);
+      }
+
+      .overlayTopRight {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(2, 6, 23, 0.85);
+        font-size: 12px;
+        color: #e2e8f0;
+        backdrop-filter: blur(10px);
+        user-select: none;
+        z-index: 1000;
+      }
+
+      .legendDot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        display: inline-block;
+        margin-right: 6px;
+      }
+
+      .tooltip {
+        position: absolute;
+        pointer-events: none;
+        padding: 8px 10px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(2, 6, 23, 0.95);
+        color: var(--text);
+        font-size: 12px;
+        transform: translate(-50%, -110%);
+        display: none;
+        white-space: nowrap;
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 8px;
+        line-height: 1.35;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.15);
+      }
+
+      .hr {
+        height: 1px;
+        background: var(--border);
+        margin: 14px 0;
+      }
+
+      .map-controls {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 1000;
+        background: rgba(2, 6, 23, 0.85);
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        backdrop-filter: blur(10px);
+      }
+
+      .zoom-info {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        background: rgba(2, 6, 23, 0.85);
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        color: var(--muted);
+        z-index: 1000;
+      }
+
+      /* Add Stop Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-content {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.06) 0%,
+          rgba(255, 255, 255, 0.03) 100%
+        );
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        width: 90%;
+        max-width: 500px;
+        backdrop-filter: blur(10px);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .modal-header h3 {
+        margin: 0;
+        color: #e2e8f0;
+      }
+
+      .close-modal {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 24px;
+        cursor: pointer;
+        line-height: 1;
+      }
+
+      .modal-body {
+        margin-bottom: 15px;
+      }
+
+      .modal-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2>Transport Hub</h2>
+        <p>Administrator Panel</p>
+      </div>
+      <div class="nav-links">
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-users"></i>
+          <span>Passengers</span>
+        </a>
+        <a href="{{ url_for('admin_bus_management') }}" class="nav-item">
+          <i class="fas fa-bus"></i>
+          <span>Bus Management</span>
+        </a>
+        <a href="{{ url_for('sim_dashboard') }}" class="nav-item active">
+          <i class="fas fa-project-diagram"></i>
+          <span>Simulation</span>
+        </a>
+        <a href="{{ url_for('admin_routes') }}" class="nav-item">
+          <i class="fas fa-route"></i>
+          <span>Routes</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-chart-line"></i>
+          <span>Analytics</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+        <a href="{{ url_for('logout') }}" class="nav-item">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="wrap">
+      <div class="topbar">
+        <div class="title">
+          <h2>🚌 Transport Hub Simulation - Live Map</h2>
+          <div class="sub">
+            Real Lahore locations • Auto-connected stops • Live bus tracking
+          </div>
+        </div>
+
+        <a href="{{ url_for('admin_dashboard') }}" style="text-decoration: none">
+          <button type="button" class="btn secondary">
+            ← Back to Dashboard
+          </button>
+        </a>
+      </div>
+
+      <div class="grid">
+        <!-- LEFT: CONTROLS -->
+        <div class="card">
+          <div class="sectionTitle">
+            <h3>🗺️ Route Finder</h3>
+            <span class="pill" id="netPill">Network: Loading...</span>
+          </div>
+
+          <label for="searchStop">🔍 Search stop</label>
+          <input id="searchStop" placeholder="Type stop name..." />
+
+          <div class="row" style="margin-top: 10px">
+            <div>
+              <label for="startSelect">📍 Start</label>
+              <select id="startSelect">
+                <option value="">Select start</option>
+              </select>
+            </div>
+            <div>
+              <label for="endSelect">🎯 Destination</label>
+              <select id="endSelect">
+                <option value="">Select destination</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top: 10px">
+            <button type="button" class="btn secondary" id="swapBtn">
+              ↕ Swap
+            </button>
+            <button type="button" class="btn" id="computeBtn">
+              🚀 Compute Route
+            </button>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="sectionTitle">
+            <h3>🎬 Playback Controls</h3>
+            <span class="pill">🚌 Fleet Manager</span>
+          </div>
+
+          <label for="speed">📊 Speed: <span id="speedValue">1x</span></label>
+          <input
+            id="speed"
+            type="range"
+            min="0.25"
+            max="4"
+            step="0.25"
+            value="1"
+          />
+
+          <div class="row" style="margin-top: 10px">
+            <button type="button" class="btn secondary" id="pauseBtn">
+              ⏸️ Pause
+            </button>
+            <button type="button" class="btn danger" id="stopBtn">
+              ⏹️ Stop
+            </button>
+            <button type="button" class="btn" id="playBtn">
+              ▶️ Play
+            </button>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="sectionTitle">
+            <h3>👁️ View Layers</h3>
+            <span class="pill">Map Layers</span>
+          </div>
+
+          <div class="toggles">
+            <label class="toggle">
+              <input type="checkbox" id="tGrid" checked />
+              🛣️ Road Network
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="tWeights" checked />
+              ⚖️ Distance Labels
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="tLabels" />
+              🏷️ Stop Labels
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="tExplored" checked />
+              🔍 Dijkstra Area
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="tSatellite" />
+              🛰️ Satellite View
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="tAutoConnect" checked />
+              🔗 Auto-Connect
+            </label>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="sectionTitle">
+            <h3>🏗️ Layout Tools</h3>
+            <span class="pill">City Planner</span>
+          </div>
+
+          <div class="row">
+            <button type="button" class="btn secondary" id="resetLayoutBtn">
+              🔄 Reset Layout
+            </button>
+            <button type="button" class="btn secondary" id="saveLayoutBtn">
+              💾 Save Layout
+            </button>
+            <button type="button" class="btn secondary" id="autoConnectBtn">
+              🔗 Auto Connect All
+            </button>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="k">📏 Distance</div>
+              <div class="v" id="kpiDistance">— km</div>
+            </div>
+            <div class="kpi">
+              <div class="k">🏢 Total Stops</div>
+              <div class="v" id="kpiStops">0</div>
+            </div>
+            <div class="kpi">
+              <div class="k">🛣️ Connections</div>
+              <div class="v" id="kpiConnections">0</div>
+            </div>
+            <div class="kpi">
+              <div class="k">⚡ Status</div>
+              <div class="v" id="kpiStatus">🟢 Idle</div>
+            </div>
+          </div>
+
+          <div id="simMsg" class="msg">
+            💡 Select start and destination to find route
+          </div>
+
+          <div class="hint">
+            <b>📍 Real Lahore Locations:</b> Stops are placed at actual Lahore landmarks<br>
+            <b>🔗 Auto-Connect:</b> Stops connect to nearby nodes for navigation<br>
+            <b>🚌 Bus Animation:</b> Bus follows the computed Dijkstra path
+          </div>
+        </div>
+
+        <!-- RIGHT: MAP -->
+        <div class="card canvasCard">
+          <div class="sectionTitle" style="margin-bottom: 10px">
+            <h3>🏙️ Transport Hub Network</h3>
+            <span class="pill" id="routePill">Path: Not Selected</span>
+          </div>
+
+          <div id="map"></div>
+
+          <div class="overlayTopRight" id="legend">
+            <span><span class="legendDot" style="background: #22c55e"></span>Start</span>
+            <span><span class="legendDot" style="background: #ef4444"></span>End</span>
+            <span><span class="legendDot" style="background: #60a5fa"></span>Stop</span>
+            <span><span class="legendDot" style="background: #10b981"></span>Path</span>
+            <span><span class="legendDot" style="background: #f59e0b"></span>Bus</span>
+          </div>
+
+          <div class="map-controls">
+            <div style="margin-bottom: 8px;">
+              <button class="btn secondary" id="zoomInBtn" style="padding: 4px 8px; font-size: 12px;">+</button>
+              <button class="btn secondary" id="zoomOutBtn" style="padding: 4px 8px; font-size: 12px;">-</button>
+            </div>
+            <button class="btn secondary" id="fitBoundsBtn" style="padding: 4px 8px; font-size: 12px; width: 100%;">
+              Fit All Stops
+            </button>
+            <button class="btn secondary" id="clearRouteBtn" style="padding: 4px 8px; font-size: 12px; width: 100%; margin-top: 5px;">
+              Clear Route
+            </button>
+          </div>
+
+          <div class="zoom-info">
+            Zoom: <span id="zoomLevel">12</span> | Stops: <span id="stopCount">0</span>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <!-- Your Simulation JS -->
+    <script src="{{ url_for('static', filename='sim.js') }}"></script>
+    
+    <!-- Simulation initialization is handled inside sim.js -->
+  </body>
+</html>

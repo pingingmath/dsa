@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Management - Smart Transport Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fb;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #60a5fa, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .nav-links {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            color: #cbd5e1;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: white;
+            border-left-color: #3b82f6;
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: white;
+            border-left-color: #3b82f6;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .header {
+            height: 70px;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .header-left h1 {
+            font-size: 1.8rem;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-header h2 {
+            font-size: 2rem;
+            color: #1e3a8a;
+            font-weight: 800;
+        }
+
+        .page-header p {
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-top: 4px solid #3b82f6;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            color: #1e293b;
+            margin-bottom: 5px;
+            font-weight: 800;
+        }
+
+        .stat-card p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .routes-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .routes-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .routes-header h3 {
+            color: #1e293b;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .routes-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .route-item {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .route-item:hover {
+            background: #f8fafc;
+        }
+
+        .route-item:last-child {
+            border-bottom: none;
+        }
+
+        .route-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .route-name {
+            font-size: 1.2rem;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .route-stops {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .stops-list {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .stop-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .stop-item:last-child {
+            border-bottom: none;
+        }
+
+        .stop-position {
+            width: 30px;
+            height: 30px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+
+        .stop-info {
+            flex: 1;
+        }
+
+        .stop-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .stop-meta {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .stop-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            color: #1e293b;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #64748b;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-hint {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #7f1d1d;
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #1e3a8a;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .alert i {
+            font-size: 1.2rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #cbd5e1;
+        }
+
+        .empty-state h3 {
+            color: #475569;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar-header h2,
+            .sidebar-header p,
+            .nav-item span {
+                display: none;
+            }
+
+            .nav-item {
+                justify-content: center;
+                padding: 20px;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 20px;
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .route-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Transport Hub</h2>
+            <p>Administrator Panel</p>
+        </div>
+
+        <div class="nav-links">
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-users"></i>
+                <span>Passengers</span>
+            </a>
+            <a href="{{ url_for('admin_bus_management') }}" class="nav-item">
+                <i class="fas fa-bus"></i>
+                <span>Bus Management</span>
+            </a>
+            <a href="{{ url_for('sim_dashboard') }}" class="nav-item">
+                <i class="fas fa-project-diagram"></i>
+                <span>Simulation</span>
+            </a>
+            <a href="{{ url_for('admin_routes') }}" class="nav-item active">
+                <i class="fas fa-route"></i>
+                <span>Routes</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Route Management</h1>
+            </div>
+
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="window.location.href=`{{ url_for('logout') }}`">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div>
+                    <h2>Bus Route Management</h2>
+                    <p>Create, edit, and manage bus routes using Linked List data structure</p>
+                </div>
+                <button class="btn-primary" id="createRouteBtn">
+                    <i class="fas fa-plus"></i>
+                    Create New Route
+                </button>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="totalRoutes">
+                        {% if stats %}
+                        {{ stats.total_routes }}
+                        {% else %}
+                        0
+                        {% endif %}
+                    </h3>
+                    <p>Total Routes</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="totalStops">
+                        {% if stats %}
+                        {{ stats.total_stops }}
+                        {% else %}
+                        0
+                        {% endif %}
+                    </h3>
+                    <p>Total Stops</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="avgStops">
+                        {% if stats %}
+                        {{ stats.average_stops_per_route }}
+                        {% else %}
+                        0
+                        {% endif %}
+                    </h3>
+                    <p>Avg Stops per Route</p>
+                </div>
+            </div>
+
+            <!-- Alert Container -->
+            <div id="alertContainer"></div>
+
+            <!-- Routes List -->
+            <div class="routes-container">
+                <div class="routes-header">
+                    <h3>All Bus Routes</h3>
+                    <button class="btn-secondary" onclick="loadRoutes()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+
+                <div class="routes-list" id="routesList">
+                    {% if routes and routes|length > 0 %}
+                    {% for route in routes %}
+                    <div class="route-item" data-route-id="{{ route.route_id }}">
+                        <div class="route-header">
+                            <div class="route-name">{{ route.route_name }}</div>
+                            <div class="stop-actions">
+                                <button class="btn-secondary" onclick="addStopToRoute('{{ route.route_id }}')">
+                                    <i class="fas fa-plus"></i> Add Stop
+                                </button>
+                                <button class="btn-danger"
+                                    onclick="deleteRoute('{{ route.route_id }}', '{{ route.route_name }}')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="route-stops">
+                            {% if route.total_stops %}
+                            {{ route.total_stops }}
+                            {% else %}
+                            0
+                            {% endif %}
+                            stops •
+                            {% if route.route_string %}
+                            {{ route.route_string }}
+                            {% else %}
+                            No stops
+                            {% endif %}
+                        </div>
+
+                        <div class="stops-list">
+                            {% if route.stops and route.stops|length > 0 %}
+                            {% for stop in route.stops %}
+                            <div class="stop-item">
+                                <div class="stop-position">
+                                    {% if stop.position %}
+                                    {{ stop.position }}
+                                    {% else %}
+                                    {{ loop.index }}
+                                    {% endif %}
+                                </div>
+                                <div class="stop-info">
+                                    <div class="stop-name">
+                                        {% if stop.data and stop.data.stop_name %}
+                                        {{ stop.data.stop_name }}
+                                        {% else %}
+                                        Unnamed Stop
+                                        {% endif %}
+                                    </div>
+                                    <div class="stop-meta">
+                                        Wait:
+                                        {% if stop.data and stop.data.wait_time %}
+                                        {{ stop.data.wait_time }}
+                                        {% else %}
+                                        5
+                                        {% endif %}
+                                        mins •
+                                        Added:
+                                        {% if stop.data and stop.data.added_at %}
+                                        {{ stop.data.added_at[:10] }}
+                                        {% else %}
+                                        N/A
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="stop-actions">
+                                    <button class="btn-secondary edit-stop-btn" data-route-id="{{ route.route_id }}"
+                                        data-position="{{ stop.position if stop.position else loop.index }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-danger remove-stop-btn" data-route-id="{{ route.route_id }}"
+                                        data-position="{{ stop.position if stop.position else loop.index }}"
+                                        data-stop-name="{{ (stop.data.stop_name if stop.data and stop.data.stop_name else 'Unnamed Stop')|replace('"', '
+                                        &quot;') }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="empty-state" style="padding: 20px;">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <p>No stops added yet</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-route"></i>
+                        <h3>No Routes Created Yet</h3>
+                        <p>Create your first bus route to get started</p>
+                        <button class="btn-primary" onclick="showCreateRouteModal()" style="margin-top: 20px;">
+                            <i class="fas fa-plus"></i>
+                            Create First Route
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Route Modal -->
+    <div class="modal" id="createRouteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Route</h3>
+                <button class="modal-close" onclick="closeModal('createRouteModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createRouteForm">
+                    <div class="form-group">
+                        <label class="form-label" for="routeName">Route Name *</label>
+                        <input type="text" id="routeName" class="form-control"
+                            placeholder="e.g., Downtown Express, University Shuttle" required>
+                        <div class="form-hint">Enter a descriptive name for the route</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="routeDescription">Description</label>
+                        <textarea id="routeDescription" class="form-control" rows="3"
+                            placeholder="Optional description of the route..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeModal('createRouteModal')">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary" id="createRouteSubmit">
+                            <i class="fas fa-plus"></i>
+                            Create Route
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Stop Modal -->
+    <div class="modal" id="addStopModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Bus Stop</h3>
+                <button class="modal-close" onclick="closeModal('addStopModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addStopForm">
+                    <input type="hidden" id="addStopRouteId">
+
+                    <div class="form-group">
+                        <label class="form-label" for="stopName">Stop Name *</label>
+                        <input type="text" id="stopName" class="form-control"
+                            placeholder="e.g., Central Station, University Main Gate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="waitTime">Wait Time (minutes) *</label>
+                        <input type="number" id="waitTime" class="form-control" value="5" min="1" max="30" required>
+                        <div class="form-hint">Time the bus waits at this stop</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="stopLocation">Location</label>
+                        <input type="text" id="stopLocation" class="form-control"
+                            placeholder="e.g., Near City Mall, Opposite Hospital">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="distanceFromPrev">Distance from Previous Stop (km) *</label>
+                        <input type="number" id="distanceFromPrev" class="form-control" value="0" min="0" step="0.1"
+                            required>
+                        <div class="form-hint">If this is the first stop (position 1), keep it 0.</div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label class="form-label" for="position">Position in Route</label>
+                        <select id="position" class="form-control">
+                            <option value="">Add at end</option>
+                        </select>
+                        <div class="form-hint">Select position or leave empty to add at end</div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeModal('addStopModal')">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary" id="addStopSubmit">
+                            <i class="fas fa-plus"></i>
+                            Add Stop
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Stop Modal -->
+    <div class="modal" id="editStopModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Bus Stop</h3>
+                <button class="modal-close" onclick="closeModal('editStopModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editStopForm">
+                    <input type="hidden" id="editStopRouteId">
+                    <input type="hidden" id="editStopPosition">
+                    <input type="hidden" id="editDistanceFromPrev">
+
+                    <div class="form-group">
+                        <label class="form-label" for="editStopName">Stop Name *</label>
+                        <input type="text" id="editStopName" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editWaitTime">Wait Time (minutes) *</label>
+                        <input type="number" id="editWaitTime" class="form-control" min="1" max="30" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editStopLocation">Location</label>
+                        <input type="text" id="editStopLocation" class="form-control">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeModal('editStopModal')">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary" id="editStopSubmit">
+                            <i class="fas fa-save"></i>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debugging: Check if page loaded
+        console.log('Route Management Page Loaded');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('DOM Content Loaded');
+            setupEventListeners();
+            loadRoutes();
+            loadStats();
+        });
+
+        // Setup event listeners
+        // Render routes
+        function renderRoutes(routes) {
+            console.log('Rendering routes:', routes);
+            const routesList = document.getElementById('routesList');
+            if (!routesList) {
+                console.error('routesList element not found!');
+                return;
+            }
+
+            if (!routes || routes.length === 0) {
+                routesList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-route"></i>
+                <h3>No Routes Created Yet</h3>
+                <p>Create your first bus route to get started</p>
+                <button class="btn-primary" onclick="showCreateRouteModal()" style="margin-top: 20px;">
+                    <i class="fas fa-plus"></i>
+                    Create First Route
+                </button>
+            </div>
+        `;
+                return;
+            }
+
+            let html = '';
+
+            routes.forEach(route => {
+                html += `
+            <div class="route-item" data-route-id="${route.route_id || ''}">
+                <div class="route-header">
+                    <div class="route-name">${route.route_name || 'Unnamed Route'}</div>
+                    <div class="stop-actions">
+                        <button class="btn-secondary" onclick="addStopToRoute('${route.route_id || ''}')">
+                            <i class="fas fa-plus"></i> Add Stop
+                        </button>
+                        <button class="btn-danger" onclick="deleteRoute('${route.route_id || ''}', '${route.route_name || 'Unnamed Route'}')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="route-stops">
+                    ${route.total_stops || 0} stops • ${route.route_string || 'No stops'}
+                </div>
+                
+                <div class="stops-list">
+        `;
+
+                if (route.stops && Array.isArray(route.stops) && route.stops.length > 0) {
+                    route.stops.forEach((stop, index) => {
+                        const stopName = stop.data && stop.data.stop_name ? stop.data.stop_name : 'Unnamed Stop';
+                        const waitTime = stop.data && stop.data.wait_time ? stop.data.wait_time : 5;
+                        const addedAt = stop.data && stop.data.added_at ? stop.data.added_at.substring(0, 10) : 'N/A';
+                        const position = stop.position || index + 1;
+
+                        html += `
+                    <div class="stop-item">
+                        <div class="stop-position">${position}</div>
+                        <div class="stop-info">
+                            <div class="stop-name">${stopName}</div>
+                            <div class="stop-meta">
+                                Wait: ${waitTime} mins • 
+                                Added: ${addedAt}
+                            </div>
+                        </div>
+                        <div class="stop-actions">
+                            <button class="btn-secondary edit-stop-btn" 
+                                    data-route-id="${route.route_id || ''}" 
+                                    data-position="${position}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-danger remove-stop-btn" 
+                                    data-route-id="${route.route_id || ''}" 
+                                    data-position="${position}"
+                                    data-stop-name="${stopName.replace(/"/g, '&quot;')}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                    });
+                } else {
+                    html += `
+                <div class="empty-state" style="padding: 20px;">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <p>No stops added yet</p>
+                </div>
+            `;
+                }
+
+                html += `
+                </div>
+            </div>
+        `;
+            });
+
+            routesList.innerHTML = html;
+
+            // Setup event listeners after HTML is rendered
+            setTimeout(() => {
+                setupStopEventListeners();
+            }, 100);
+        }
+        // Setup event listeners
+        // Setup event listeners
+        function setupEventListeners() {
+            console.log('Setting up event listeners...');
+
+            // Create route button
+            const createRouteBtn = document.getElementById('createRouteBtn');
+            if (createRouteBtn) {
+                console.log('Found createRouteBtn');
+                createRouteBtn.addEventListener('click', showCreateRouteModal);
+            } else {
+                console.error('createRouteBtn not found!');
+            }
+
+            // Create route form
+            const createRouteForm = document.getElementById('createRouteForm');
+            if (createRouteForm) {
+                createRouteForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    handleCreateRoute(e);
+                });
+            }
+
+            // ✅✅✅ ADD STOP FORM EVENT LISTENER (IMPORTANT!) ✅✅✅
+            const addStopForm = document.getElementById('addStopForm');
+            if (addStopForm) {
+                console.log('Found addStopForm');
+                // Remove any existing listeners first
+                addStopForm.replaceWith(addStopForm.cloneNode(true));
+
+                // Get fresh reference
+                const freshAddStopForm = document.getElementById('addStopForm');
+                freshAddStopForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    handleAddStop(e);
+                });
+            } else {
+                console.error('addStopForm not found!');
+            }
+
+            // Edit stop form
+            const editStopForm = document.getElementById('editStopForm');
+            if (editStopForm) {
+                editStopForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    handleEditStop(e);
+                });
+            }
+        }
+        // Setup stop event listeners
+        function setupStopEventListeners() {
+            // Edit stop buttons
+            const editButtons = document.querySelectorAll('.edit-stop-btn');
+            console.log(`Found ${editButtons.length} edit buttons`);
+
+            editButtons.forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const routeId = this.getAttribute('data-route-id');
+                    const position = parseInt(this.getAttribute('data-position'));
+                    console.log(`Edit stop clicked: route=${routeId}, position=${position}`);
+                    editStop(routeId, position);
+                });
+            });
+
+            // Remove stop buttons
+            const removeButtons = document.querySelectorAll('.remove-stop-btn');
+            console.log(`Found ${removeButtons.length} remove buttons`);
+
+            removeButtons.forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const routeId = this.getAttribute('data-route-id');
+                    const position = parseInt(this.getAttribute('data-position'));
+                    const stopName = this.getAttribute('data-stop-name');
+                    console.log(`Remove stop clicked: route=${routeId}, position=${position}, name=${stopName}`);
+                    removeStop(routeId, position, stopName);
+                });
+            });
+
+            // Also setup Add Stop buttons (if they use data attributes)
+            const addStopButtons = document.querySelectorAll('.btn-secondary[onclick*="addStopToRoute"]');
+            addStopButtons.forEach(btn => {
+                const onclick = btn.getAttribute('onclick');
+                if (onclick && onclick.includes("addStopToRoute")) {
+                    btn.removeAttribute('onclick');
+                    btn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        const match = onclick.match(/addStopToRoute\('([^']+)'\)/);
+                        if (match && match[1]) {
+                            addStopToRoute(match[1]);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Add this function to setup initial event listeners when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initial setup
+            setupEventListeners();
+            loadRoutes();
+            loadStats();
+            // Also setup event listeners for dynamically added elements
+            const observer = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    if (mutation.addedNodes.length) {
+                        setupStopEventListeners();
+                    }
+                });
+            });
+
+            const routesList = document.getElementById('routesList');
+            if (routesList) {
+                observer.observe(routesList, { childList: true, subtree: true });
+            }
+        });
+
+        // Modal functions
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                const formId = modalId.replace('Modal', 'Form');
+                resetForm(formId);
+            }
+        }
+
+        function resetForm(formId) {
+            const form = document.getElementById(formId);
+            if (form) {
+                form.reset();
+            }
+        }
+
+        // Show create route modal
+        function showCreateRouteModal() {
+            console.log('Opening create route modal');
+            showModal('createRouteModal');
+        }
+
+        // Show add stop modal
+        function addStopToRoute(routeId) {
+            console.log('Adding stop to route:', routeId);
+            const routeIdField = document.getElementById('addStopRouteId');
+            if (routeIdField) {
+                routeIdField.value = routeId;
+            }
+
+            // Load current stops for position selection
+            fetch(`/api/routes/${routeId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // --- Distance input behavior ---
+                    const distanceInput = document.getElementById('distanceFromPrev');
+                    const totalStops = (data.route && Array.isArray(data.route.stops)) ? data.route.stops.length : 0;
+
+                    if (distanceInput) {
+                        if (totalStops === 0) {
+                            distanceInput.value = 0;
+                            distanceInput.readOnly = true;   // first stop must be 0
+                        } else {
+                            distanceInput.readOnly = false;
+                        }
+                    }
+
+                    // If admin selects position 1, distance must be 0
+                    const positionSelect = document.getElementById('position');
+                    if (positionSelect && distanceInput) {
+                        positionSelect.addEventListener('change', () => {
+                            const pos = parseInt(positionSelect.value || (totalStops + 1), 10);
+                            if (pos === 1) {
+                                distanceInput.value = 0;
+                                distanceInput.readOnly = true;
+                            } else {
+                                distanceInput.readOnly = false;
+                            }
+                        }, { once: true });
+                    }
+
+
+
+                    showModal('addStopModal');
+                })
+                .catch(error => {
+                    console.error('Error loading route:', error);
+                    showError('Failed to load route information: ' + error.message);
+                });
+        }
+
+        // Show edit stop modal
+        function editStop(routeId, position) {
+            console.log('Editing stop:', routeId, position);
+            const routeIdField = document.getElementById('editStopRouteId');
+            const positionField = document.getElementById('editStopPosition');
+
+            if (routeIdField) routeIdField.value = routeId;
+            if (positionField) positionField.value = position;
+
+            // Load stop data
+            fetch(`/api/routes/${routeId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.route && data.route.stops && Array.isArray(data.route.stops)) {
+                        const stop = data.route.stops.find(s => s.position == position);
+                        if (stop) {
+                            const stopNameField = document.getElementById('editStopName');
+                            const waitTimeField = document.getElementById('editWaitTime');
+                            const locationField = document.getElementById('editStopLocation');
+                            const distanceField = document.getElementById('editDistanceFromPrev');
+
+                            if (stopNameField) stopNameField.value = stop.data && stop.data.stop_name ? stop.data.stop_name : '';
+                            if (waitTimeField) waitTimeField.value = stop.data && stop.data.wait_time ? stop.data.wait_time : 5;
+                            if (locationField) locationField.value = stop.data && stop.data.location ? stop.data.location : '';
+                            if (distanceField) {
+                                distanceField.value = stop.data && stop.data.distance_from_previous ? stop.data.distance_from_previous : 0;
+                            }
+
+                            showModal('editStopModal');
+                        } else {
+                            showError('Stop not found at position ' + position);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading stop:', error);
+                    showError('Failed to load stop information: ' + error.message);
+                });
+        }
+
+        // Handle create route
+        async function handleCreateRoute(e) {
+            e.preventDefault();
+            console.log('Creating route...');
+
+            const routeName = document.getElementById('routeName')?.value.trim();
+            const description = document.getElementById('routeDescription')?.value.trim();
+
+            console.log('Route name input:', routeName);
+
+            if (!routeName) {
+                showError('Route name is required');
+                return;
+            }
+
+            const submitBtn = document.getElementById('createRouteSubmit');
+            if (!submitBtn) {
+                showError('Submit button not found');
+                return;
+            }
+
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="loading"></div> Creating...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/routes/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        route_name: routeName,
+                        description: description || ''
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Create route response:', data);
+
+                if (response.ok) {
+                    showSuccess(data.message || 'Route created successfully');
+                    closeModal('createRouteModal');
+                    setTimeout(() => {
+                        loadRoutes();
+                        loadStats();
+                    }, 500);
+                } else {
+                    showError(data.error || 'Failed to create route');
+                }
+            } catch (error) {
+                console.error('Error creating route:', error);
+                showError('Failed to create route: ' + error.message);
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+        // Handle add stop
+        // handleAddStop function mein debug prints add karein
+        let isAddingStop = false; // Global variable for preventing double clicks
+
+        async function handleAddStop(e) {
+            e.preventDefault();
+            console.log('Adding stop...');
+
+            // Double click prevention
+            if (isAddingStop) {
+                console.log('Already adding a stop, please wait...');
+                return;
+            }
+
+            isAddingStop = true;
+
+            const routeId = document.getElementById('addStopRouteId')?.value;
+            const stopName = document.getElementById('stopName')?.value.trim();
+            const waitTime = parseInt(document.getElementById('waitTime')?.value);
+            const location = document.getElementById('stopLocation')?.value.trim();
+            const distanceFromPrev = parseFloat(document.getElementById('distanceFromPrev')?.value);
+
+            const position = document.getElementById('position')?.value;
+
+            console.log('Route ID:', routeId);
+            console.log('Stop Name:', stopName);
+            console.log('Wait Time:', waitTime);
+            console.log('Location:', location);
+            console.log('Position:', position);
+
+            if (!routeId) {
+                showError('Route ID is missing');
+                isAddingStop = false;
+                return;
+            }
+
+            if (!stopName) {
+                showError('Stop name is required');
+                isAddingStop = false;
+                return;
+            }
+
+            if (isNaN(waitTime) || waitTime < 1 || waitTime > 30) {
+                showError('Wait time must be between 1 and 30 minutes');
+                isAddingStop = false;
+                return;
+            }
+
+            if (isNaN(distanceFromPrev) || distanceFromPrev < 0) {
+                showError('Distance must be 0 or a positive number');
+                isAddingStop = false;
+                return;
+            }
+
+            const submitBtn = document.getElementById('addStopSubmit');
+            if (!submitBtn) {
+                showError('Submit button not found');
+                isAddingStop = false;
+                return;
+            }
+
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="loading"></div> Adding...';
+            submitBtn.disabled = true;
+
+            try {
+                const stopData = {
+                    stop_name: stopName,
+                    wait_time: waitTime,
+                    location: location || '',
+                    distance_from_previous: distanceFromPrev
+                };
+
+
+                if (position && position !== '') {
+                    stopData.position = parseInt(position);
+                }
+
+                console.log('Sending stop data to server:', JSON.stringify(stopData, null, 2));
+
+                const response = await fetch(`/api/routes/${routeId}/add_stop`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(stopData)
+                });
+
+                console.log('Response status:', response.status);
+
+                const data = await response.json();
+                console.log('Add stop response:', data);
+
+                if (response.ok) {
+                    showSuccess(data.message || 'Stop added successfully');
+                    closeModal('addStopModal');
+                    setTimeout(() => {
+                        loadRoutes();
+                        loadStats();
+                    }, 500);
+                } else {
+                    showError(data.error || 'Failed to add stop');
+                }
+            } catch (error) {
+                console.error('Error adding stop:', error);
+                showError('Failed to add stop: ' + error.message);
+            } finally {
+                // Always reset the flag and button state
+                isAddingStop = false;
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+        // Handle edit stop
+        async function handleEditStop(e) {
+            e.preventDefault();
+            console.log('Editing stop...');
+
+            const routeId = document.getElementById('editStopRouteId')?.value;
+            const position = document.getElementById('editStopPosition')?.value;
+            const stopName = document.getElementById('editStopName')?.value.trim();
+            const waitTime = parseInt(document.getElementById('editWaitTime')?.value);
+            const location = document.getElementById('editStopLocation')?.value.trim();
+            const distanceFromPrev = parseFloat(document.getElementById('editDistanceFromPrev')?.value);
+
+            console.log('Edit params:', { routeId, position, stopName, waitTime, location, distanceFromPrev });
+
+            if (!routeId || !position) {
+                showError('Route ID or position is missing');
+                return;
+            }
+
+            if (!stopName) {
+                showError('Stop name is required');
+                return;
+            }
+
+            if (isNaN(waitTime) || waitTime < 1 || waitTime > 30) {
+                showError('Wait time must be between 1 and 30 minutes');
+                return;
+            }
+
+            if (isNaN(distanceFromPrev) || distanceFromPrev < 0) {
+                showError('Distance must be 0 or a positive number');
+                return;
+            }
+
+            const submitBtn = document.getElementById('editStopSubmit');
+            if (!submitBtn) {
+                showError('Submit button not found');
+                return;
+            }
+
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="loading"></div> Saving...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/routes/${routeId}/update_stop/${position}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        stop_name: stopName,
+                        wait_time: waitTime,
+                        location: location || '',
+                        distance_from_previous: distanceFromPrev
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Edit stop response:', data);
+
+                if (response.ok) {
+                    showSuccess(data.message || 'Stop updated successfully');
+                    closeModal('editStopModal');
+                    setTimeout(() => {
+                        loadRoutes();
+                    }, 500);
+                } else {
+                    showError(data.error || 'Failed to update stop');
+                }
+            } catch (error) {
+                console.error('Error updating stop:', error);
+                showError('Failed to update stop: ' + error.message);
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Remove stop
+        async function removeStop(routeId, position, stopName) {
+            if (!confirm(`Are you sure you want to remove "${stopName}" from this route?`)) {
+                return;
+            }
+
+            console.log('Removing stop:', routeId, position);
+
+            try {
+                const response = await fetch(`/api/routes/${routeId}/remove_stop/${position}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                console.log('Remove stop response:', data);
+
+                if (response.ok) {
+                    showSuccess(data.message || 'Stop removed successfully');
+                    setTimeout(() => {
+                        loadRoutes();
+                        loadStats();
+                    }, 500);
+                } else {
+                    showError(data.error || 'Failed to remove stop');
+                }
+            } catch (error) {
+                console.error('Error removing stop:', error);
+                showError('Failed to remove stop: ' + error.message);
+            }
+        }
+
+        // Delete route
+        async function deleteRoute(routeId, routeName) {
+            if (!confirm(`Are you sure you want to delete the route "${routeName}"? This action cannot be undone.`)) {
+                return;
+            }
+
+            console.log('Deleting route:', routeId);
+
+            try {
+                const response = await fetch(`/api/routes/${routeId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                console.log('Delete route response:', data);
+
+                if (response.ok) {
+                    showSuccess(data.message || 'Route deleted successfully');
+                    setTimeout(() => {
+                        loadRoutes();
+                        loadStats();
+                    }, 500);
+                } else {
+                    showError(data.error || 'Failed to delete route');
+                }
+            } catch (error) {
+                console.error('Error deleting route:', error);
+                showError('Failed to delete route: ' + error.message);
+            }
+        }
+
+        // Load routes
+        async function loadRoutes() {
+            console.log('Loading routes...');
+            try {
+                const response = await fetch('/api/routes');
+                const data = await response.json();
+                console.log('Routes loaded:', data);
+
+                if (response.ok) {
+                    renderRoutes(data.routes || []);
+                } else {
+                    showError(data.error || 'Failed to load routes');
+                }
+            } catch (error) {
+                console.error('Error loading routes:', error);
+                showError('Failed to load routes: ' + error.message);
+            }
+        }
+
+        // Load stats
+        async function loadStats() {
+            console.log('Loading stats...');
+            try {
+                const response = await fetch('/api/routes/stats');
+                if (!response.ok) {
+                    console.warn('Failed to load stats:', response.status);
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('Stats loaded:', data);
+
+                if (data.stats) {
+                    const totalRoutes = document.getElementById('totalRoutes');
+                    const totalStops = document.getElementById('totalStops');
+                    const avgStops = document.getElementById('avgStops');
+
+                    if (totalRoutes) totalRoutes.textContent = data.stats.total_routes || 0;
+                    if (totalStops) totalStops.textContent = data.stats.total_stops || 0;
+                    if (avgStops) avgStops.textContent = data.stats.average_stops_per_route || 0;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Render routes
+        function renderRoutes(routes) {
+            console.log('Rendering routes:', routes);
+            const routesList = document.getElementById('routesList');
+            if (!routesList) {
+                console.error('routesList element not found!');
+                return;
+            }
+
+            if (!routes || routes.length === 0) {
+                routesList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-route"></i>
+                        <h3>No Routes Created Yet</h3>
+                        <p>Create your first bus route to get started</p>
+                        <button class="btn-primary" onclick="showCreateRouteModal()" style="margin-top: 20px;">
+                            <i class="fas fa-plus"></i>
+                            Create First Route
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            routes.forEach(route => {
+                html += `
+                    <div class="route-item" data-route-id="${route.route_id || ''}">
+                        <div class="route-header">
+                            <div class="route-name">${route.route_name || 'Unnamed Route'}</div>
+                            <div class="stop-actions">
+                                <button class="btn-secondary" onclick="addStopToRoute('${route.route_id || ''}')">
+                                    <i class="fas fa-plus"></i> Add Stop
+                                </button>
+                                <button class="btn-danger" onclick="deleteRoute('${route.route_id || ''}', '${route.route_name || 'Unnamed Route'}')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="route-stops">
+                            ${route.total_stops || 0} stops • ${route.route_string || 'No stops'}
+                        </div>
+                        
+                        <div class="stops-list">
+                `;
+
+                if (route.stops && Array.isArray(route.stops) && route.stops.length > 0) {
+                    route.stops.forEach((stop, index) => {
+                        const stopName = stop.data && stop.data.stop_name ? stop.data.stop_name : 'Unnamed Stop';
+                        const waitTime = stop.data && stop.data.wait_time ? stop.data.wait_time : 5;
+                        const addedAt = stop.data && stop.data.added_at ? stop.data.added_at.substring(0, 10) : 'N/A';
+                        const position = stop.position || index + 1;
+
+                        html += `
+                            <div class="stop-item">
+                                <div class="stop-position">${position}</div>
+                                <div class="stop-info">
+                                    <div class="stop-name">${stopName}</div>
+                                    <div class="stop-meta">
+                                        Wait: ${waitTime} mins • 
+                                        Added: ${addedAt}
+                                    </div>
+                                </div>
+                                <div class="stop-actions">
+                                    <button class="btn-secondary" onclick="editStop('${route.route_id || ''}', ${position})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-danger" onclick="removeStop('${route.route_id || ''}', ${position}, '${stopName}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `
+                        <div class="empty-state" style="padding: 20px;">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <p>No stops added yet</p>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            routesList.innerHTML = html;
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            showAlert(message, 'success');
+        }
+
+        // Show error message
+        function showError(message) {
+            showAlert(message, 'error');
+        }
+
+        // Show info message
+        function showInfo(message) {
+            showAlert(message, 'info');
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            if (!alertContainer) {
+                console.error('alertContainer not found!');
+                return;
+            }
+
+            // Remove existing alerts
+            const existingAlerts = alertContainer.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+
+            alertContainer.appendChild(alert);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.parentNode.removeChild(alert);
+                    }
+                }, 300);
+            }, 5000);
+        }
+    </script>
+</body>
+
+</html>

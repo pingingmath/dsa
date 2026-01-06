@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Journey - Smart Transport Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .plan-container {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .plan-header {
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(13, 148, 136, 0.3);
+        }
+        
+        .plan-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .plan-form {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #475569;
+            font-weight: 600;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .btn-find {
+            padding: 12px 30px;
+            background: #0d9488;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn-find:hover {
+            background: #0f766e;
+        }
+        
+        .result-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            display: none;
+        }
+        
+        .path-item {
+            padding: 15px;
+            border-left: 4px solid #0d9488;
+            margin-bottom: 10px;
+            background: #f8fafc;
+        }
+        
+        .algorithm-info {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Copy sidebar and header from passenger_dashboard.html -->
+    
+    <div class="main-content">
+        <!-- Copy header -->
+        
+        <div class="plan-container">
+            <div class="plan-header">
+                <h1><i class="fas fa-route"></i> Plan Your Journey</h1>
+                <p>Find the shortest route using Dijkstra's Algorithm and other graph algorithms</p>
+            </div>
+            
+            <div class="plan-form">
+                <h2><i class="fas fa-map-marker-alt"></i> Select Stops</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fromStop"><i class="fas fa-map-marker-alt"></i> From</label>
+                        <select id="fromStop" class="form-control">
+                            <option value="">Select departure stop</option>
+                            {% for stop in stops %}
+                                <option value="{{ stop }}">{{ stop }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="toStop"><i class="fas fa-map-marker-alt"></i> To</label>
+                        <select id="toStop" class="form-control">
+                            <option value="">Select arrival stop</option>
+                            {% for stop in stops %}
+                                <option value="{{ stop }}">{{ stop }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn-find" onclick="findShortestRoute()">
+                    <i class="fas fa-search"></i> Find Shortest Route
+                </button>
+            </div>
+            
+            <div class="result-container" id="resultContainer">
+                <h2><i class="fas fa-route"></i> Route Found</h2>
+                <div id="routeResult">
+                    <!-- Results will be shown here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function findShortestRoute() {
+            const fromStop = document.getElementById('fromStop').value;
+            const toStop = document.getElementById('toStop').value;
+            
+            if (!fromStop || !toStop) {
+                alert('Please select both stops');
+                return;
+            }
+            
+            if (fromStop === toStop) {
+                alert('From and To stops cannot be the same');
+                return;
+            }
+            
+            // Simulate finding route (in real app, this would call API)
+            const resultContainer = document.getElementById('resultContainer');
+            const routeResult = document.getElementById('routeResult');
+            
+            // Show loading
+            routeResult.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Finding shortest path using Dijkstra\'s algorithm...</p>';
+            resultContainer.style.display = 'block';
+            
+            // Simulate API call
+            setTimeout(() => {
+                const stops = ['{{ stops|join("', '") }}'].split(', ');
+                const fromIndex = stops.indexOf(fromStop);
+                const toIndex = stops.indexOf(toStop);
+                
+                if (fromIndex === -1 || toIndex === -1) {
+                    routeResult.innerHTML = '<p class="error">Invalid stops selected</p>';
+                    return;
+                }
+                
+                // Generate path
+                let path = [];
+                const direction = fromIndex < toIndex ? 1 : -1;
+                
+                for (let i = fromIndex; i !== toIndex + direction; i += direction) {
+                    path.push(stops[i]);
+                }
+                
+                // Calculate estimated time
+                const distance = Math.abs(toIndex - fromIndex);
+                const estimatedTime = distance * 10; // 10 minutes per stop
+                
+                routeResult.innerHTML = `
+                    <div class="algorithm-info">
+                        <h3><i class="fas fa-code"></i> Algorithm: Dijkstra's Shortest Path</h3>
+                        <p>Time Complexity: O((V+E) log V) where V=stops, E=connections</p>
+                    </div>
+                    
+                    <h3><i class="fas fa-list-ol"></i> Route Path:</h3>
+                    ${path.map((stop, index) => `
+                        <div class="path-item">
+                            <strong>${index + 1}.</strong> ${stop}
+                            ${index < path.length - 1 ? '<i class="fas fa-arrow-right"></i>' : ''}
+                        </div>
+                    `).join('')}
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #d1fae5; border-radius: 8px;">
+                        <h4><i class="fas fa-info-circle"></i> Route Summary:</h4>
+                        <p><strong>Total Stops:</strong> ${path.length}</p>
+                        <p><strong>Estimated Travel Time:</strong> ${estimatedTime} minutes</p>
+                        <p><strong>Distance:</strong> ${distance} stops</p>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <button class="btn-find" onclick="bookThisRoute('${fromStop}', '${toStop}')">
+                            <i class="fas fa-ticket-alt"></i> Book Tickets for This Route
+                        </button>
+                    </div>
+                `;
+            }, 1500);
+        }
+        
+        function bookThisRoute(fromStop, toStop) {
+            // Redirect to booking page with pre-selected stops
+            window.location.href = `{{ url_for('passenger_book_ticket') }}?from=${encodeURIComponent(fromStop)}&to=${encodeURIComponent(toStop)}`;
+        }
+    </script>
+</body>
+</html>

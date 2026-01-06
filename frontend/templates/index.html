@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Transport System - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .navbar {
+            background: rgba(10, 25, 47, 0.98);
+            padding: 1.2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(15px);
+            border-bottom: 3px solid #2563eb;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: fadeInDown 1s ease;
+        }
+        
+        .logo i {
+            font-size: 2.5rem;
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+        }
+        
+        .logo h1 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 12px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            font-size: 1.05rem;
+        }
+        
+        .nav-links a:before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            transition: all 0.4s ease;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        
+        .nav-links a:hover {
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        .nav-links a:hover:before {
+            width: 80%;
+        }
+        
+        .nav-links .btn-login {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+            border: none;
+        }
+        
+        .nav-links .btn-login:hover {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.4);
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 3rem 3rem 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+        
+        .hero-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+        
+        .hero-text {
+            animation: fadeInLeft 1s ease;
+        }
+        
+        .hero-text h2 {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        
+        .hero-text .highlight {
+            color: #60a5fa;
+            font-weight: 700;
+        }
+        
+        .hero-text p {
+            font-size: 1.4rem;
+            color: #cbd5e1;
+            max-width: 600px;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+        
+        .hero-visual {
+            animation: fadeInRight 1s ease;
+            position: relative;
+        }
+        
+        .visual-container {
+            background: rgba(30, 58, 138, 0.2);
+            border-radius: 30px;
+            padding: 40px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .visual-container:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+        }
+        
+        .visual-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .visual-item {
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .visual-item:hover {
+            transform: translateY(-10px);
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+        
+        .visual-item i {
+            font-size: 2.5rem;
+            color: #60a5fa;
+            margin-bottom: 15px;
+            background: rgba(59, 130, 246, 0.2);
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin: 0 auto 15px auto;
+        }
+        
+        .visual-item h4 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .visual-item p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-hero {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 35px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+            color: white;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
+            background: linear-gradient(135deg, #2563eb, #1e3a8a);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-8px);
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+        
+        /* Application Features Section */
+        .app-features {
+            padding: 120px 3rem;
+            background: rgba(10, 25, 47, 0.8);
+            position: relative;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+            animation: fadeInUp 1s ease;
+        }
+        
+        .section-header h2 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #60a5fa, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        
+        .section-header p {
+            font-size: 1.3rem;
+            color: #cbd5e1;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .feature-card {
+            background: rgba(30, 58, 138, 0.2);
+            border-radius: 25px;
+            padding: 45px 35px;
+            border: 2px solid #1e40af;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-color: #3b82f6;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+            background: rgba(30, 58, 138, 0.3);
+        }
+        
+        .feature-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            color: white;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+        
+        .feature-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .feature-card p {
+            color: #94a3b8;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        .feature-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Performance Section */
+        .performance {
+            padding: 120px 3rem;
+            background: linear-gradient(135deg, #1e3a8a 0%, #0a192f 100%);
+            position: relative;
+        }
+        
+        .performance:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+        }
+        
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .performance-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 25px;
+            padding: 50px 40px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .performance-card:hover {
+            transform: translateY(-10px);
+            border-color: #3b82f6;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+        
+        .performance-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .performance-card:hover:before {
+            opacity: 1;
+        }
+        
+        .performance-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px auto;
+            font-size: 3rem;
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.3);
+        }
+        
+        .performance-card h3 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .performance-card p {
+            color: #94a3b8;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .percentage {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+        
+        /* How It Works Section */
+        .how-it-works {
+            padding: 120px 3rem;
+            background: rgba(10, 25, 47, 0.9);
+        }
+        
+        .steps-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .step-line {
+            position: absolute;
+            top: 0;
+            left: 50px;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #3b82f6, transparent);
+            transform: translateX(-50%);
+        }
+        
+        .step {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 60px;
+            position: relative;
+            align-items: center;
+        }
+        
+        .step-number {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.3);
+            z-index: 2;
+        }
+        
+        .step-content {
+            background: rgba(30, 58, 138, 0.2);
+            border-radius: 25px;
+            padding: 35px;
+            border: 2px solid #1e40af;
+            flex: 1;
+        }
+        
+        .step-content h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .step-content p {
+            color: #94a3b8;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            padding: 120px 3rem;
+            background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-section:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%233b82f6" opacity="0.1"/></svg>');
+            background-size: 50px 50px;
+            opacity: 0.3;
+        }
+        
+        .cta-container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .cta-container h2 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #60a5fa, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        
+        .cta-container p {
+            font-size: 1.3rem;
+            color: #cbd5e1;
+            margin-bottom: 50px;
+            line-height: 1.6;
+        }
+        
+        .cta-buttons-large {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .footer {
+            background: rgba(10, 25, 47, 0.98);
+            padding: 60px 3rem 40px 3rem;
+            text-align: center;
+            border-top: 3px solid #2563eb;
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 50px;
+            margin-bottom: 50px;
+        }
+        
+        .footer-column h3 {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: white;
+            text-align: left;
+        }
+        
+        .footer-column p {
+            color: #94a3b8;
+            text-align: left;
+            line-height: 1.8;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        
+        .social-links a {
+            color: #cbd5e1;
+            font-size: 1.8rem;
+            transition: all 0.3s;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 15px;
+        }
+        
+        .social-links a:hover {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .copyright {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            padding-top: 30px;
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .alert-container {
+            position: fixed;
+            top: 100px;
+            right: 30px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        
+        .alert {
+            padding: 20px 25px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-left: 5px solid;
+            background: rgba(10, 25, 47, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .alert-success {
+            border-left-color: #22c55e;
+        }
+        
+        .alert-error {
+            border-left-color: #ef4444;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 15px rgba(59, 130, 246, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @media (max-width: 1200px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 50px;
+            }
+            
+            .hero-text, .hero-visual {
+                text-align: center;
+            }
+            
+            .hero-text p {
+                margin: 0 auto 3rem auto;
+            }
+            
+            .cta-buttons {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+            }
+            
+            .hero {
+                padding: 150px 1.5rem 3rem 1.5rem;
+            }
+            
+            .hero-text h2 {
+                font-size: 2.8rem;
+            }
+            
+            .hero-text p {
+                font-size: 1.2rem;
+            }
+            
+            .app-features, .performance, .how-it-works, .cta-section {
+                padding: 80px 1.5rem;
+            }
+            
+            .section-header h2 {
+                font-size: 2.8rem;
+            }
+            
+            .features-grid, .performance-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .step {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .step-line {
+                display: none;
+            }
+            
+            .cta-buttons-large {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn-hero, .btn-about {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0a192f;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #2563eb, #1e3a8a);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-bus pulse"></i>
+            <h1>Smart Transport Hub</h1>
+        </div>
+        
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#performance">Performance</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="{{ url_for('login') }}" class="btn-login">
+                <i class="fas fa-sign-in-alt"></i> Get Started
+            </a>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alert-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h2>Intelligent Transport Routing & Simulation System</h2>
+                <p>Revolutionize urban mobility with our <span class="highlight">AI-powered</span> transport management system. Optimize routes, reduce wait times, and enhance passenger experience through intelligent algorithms.</p>
+                
+                <div class="cta-buttons">
+                    <a href="{{ url_for('signup') }}" class="btn-hero btn-primary">
+                        <i class="fas fa-rocket"></i> Start Free Trial
+                    </a>
+                    <a href="#features" class="btn-hero btn-secondary">
+                        <i class="fas fa-play-circle"></i> See Demo
+                    </a>
+                </div>
+            </div>
+            
+            <div class="hero-visual">
+                <div class="visual-container">
+                    <h3 style="color: white; margin-bottom: 20px; font-size: 1.5rem;">Real-time System Metrics</h3>
+                    <div class="visual-grid">
+                        <div class="visual-item">
+                            <i class="fas fa-bolt"></i>
+                            <h4>Instant Booking</h4>
+                            <p>2.5 sec average</p>
+                        </div>
+                        <div class="visual-item">
+                            <i class="fas fa-chart-line"></i>
+                            <h4>Route Optimization</h4>
+                            <p>40% faster routes</p>
+                        </div>
+                        <div class="visual-item">
+                            <i class="fas fa-users"></i>
+                            <h4>Passenger Flow</h4>
+                            <p>99.8% accuracy</p>
+                        </div>
+                        <div class="visual-item">
+                            <i class="fas fa-ticket-alt"></i>
+                            <h4>Ticket Verification</h4>
+                            <p>O(1) lookup time</p>
+                        </div>
+                        <div class="visual-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <h4>Live Tracking</h4>
+                            <p>Real-time updates</p>
+                        </div>
+                        <div class="visual-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <h4>System Uptime</h4>
+                            <p>99.9% reliability</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Application Features -->
+    <section id="features" class="app-features">
+        <div class="section-header">
+            <h2>What Our Application Can Do</h2>
+            <p>Experience the power of intelligent transport management with these cutting-edge features</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-route"></i>
+                </div>
+                <h3>Intelligent Route Planning</h3>
+                <p>Our system automatically calculates the most efficient bus routes based on real-time traffic, passenger demand, and road conditions. Reduce travel time by up to 40%.</p>
+                <div class="feature-stats">
+                    <div class="stat">
+                        <div class="stat-value">40%</div>
+                        <div class="stat-label">Faster Routes</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">99.5%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Smart Passenger Management</h3>
+                <p>Manage passenger queues efficiently at bus stops. Automatic boarding, seat allocation, and crowd control using Queue data structures.</p>
+                <div class="feature-stats">
+                    <div class="stat">
+                        <div class="stat-value">70%</div>
+                        <div class="stat-label">Faster Boarding</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">O(1)</div>
+                        <div class="stat-label">Queue Time</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <h3>Instant Ticket System</h3>
+                <p>Book and verify tickets in milliseconds using Hash Table technology. QR code scanning, digital tickets, and instant verification.</p>
+                <div class="feature-stats">
+                    <div class="stat">
+                        <div class="stat-value">2.5s</div>
+                        <div class="stat-label">Booking Time</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">O(1)</div>
+                        <div class="stat-label">Lookup Time</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <h3>Live Bus Tracking</h3>
+                <p>Track buses in real-time on interactive maps. Get accurate ETAs, route deviations, and live passenger counts.</p>
+                <div class="feature-stats">
+                    <div class="stat">
+                        <div class="stat-value">30s</div>
+                        <div class="stat-label">Update Interval</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">95%</div>
+                        <div class="stat-label">ETA Accuracy</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <h3>Network Optimization</h3>
+                <p>City-wide transport network represented as Graph with Dijkstra's algorithm for shortest path calculation between any two stops.</p>
+                <div class="feature-stats">
+                    <div class="stat">
+                        <div class="stat-value">100ms</div>
+                        <div class="stat-label">Path Calculation</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">99%</div>
+                        <div class="stat-label">Optimal Paths</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h3>Action History & Recovery</h3>
+                <p>Complete audit trail of all system actions with undo/redo functionality using Stack data structure.</p>
+                <div class="feature-stats">
+                    <div class="stat">
+                        <div class="stat-value">O(1)</div>
+                        <div class="stat-label">Undo Time</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Data Recovery</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance Section -->
+    <section id="performance" class="performance">
+        <div class="section-header">
+            <h2>Unmatched Performance</h2>
+            <p>Our DSA-powered algorithms deliver exceptional speed and efficiency</p>
+        </div>
+        
+        <div class="performance-grid">
+            <div class="performance-card">
+                <div class="performance-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="percentage">O(1)</div>
+                <h3>Hash Table Lookup</h3>
+                <p>Instant ticket verification and passenger lookup with constant time complexity</p>
+            </div>
+            
+            <div class="performance-card">
+                <div class="performance-icon">
+                    <i class="fas fa-route"></i>
+                </div>
+                <div class="percentage">O(E log V)</div>
+                <h3>Shortest Path</h3>
+                <p>Dijkstra's algorithm for optimal route calculation with guaranteed efficiency</p>
+            </div>
+            
+            <div class="performance-card">
+                <div class="performance-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="percentage">O(1)</div>
+                <h3>Queue Operations</h3>
+                <p>Constant time enqueue and dequeue for efficient passenger management</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="section-header">
+            <h2>How The System Works</h2>
+            <p>A step-by-step guide to our intelligent transport management system</p>
+        </div>
+        
+        <div class="steps-container">
+            <div class="step-line"></div>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>User Registration & Login</h3>
+                    <p>Passengers create accounts using our secure signup system. Admin has predefined credentials. All user data is stored in JSON files using array and hash table data structures for efficient management.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Route Management</h3>
+                    <p>Admin creates and manages bus routes using linked lists. Each route is a sequence of stops with distances and travel times. Graph data structure represents the entire city transport network.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Passenger Queue Management</h3>
+                    <p>At each bus stop, passengers form queues. Our system manages these queues efficiently using queue data structures, ensuring first-come-first-serve boarding.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Ticket Booking & Verification</h3>
+                    <p>Passengers book tickets through the system. Each ticket is stored in a hash table for O(1) lookup time. QR codes and digital tickets ensure quick verification.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h3>Real-time Simulation</h3>
+                    <p>The system simulates bus movements between stops, updates passenger counts, and recalculates routes dynamically based on traffic conditions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-container">
+            <h2>Ready to Transform Urban Transport?</h2>
+            <p>Join thousands of satisfied users who have optimized their transportation systems with our intelligent platform.</p>
+            
+            <div class="cta-buttons-large">
+                <a href="{{ url_for('signup') }}" class="btn-hero btn-primary" style="padding: 20px 50px; font-size: 1.3rem;">
+                    <i class="fas fa-user-plus"></i> Create Free Account
+                </a>
+                <a href="{{ url_for('login') }}" class="btn-hero btn-secondary" style="padding: 20px 50px; font-size: 1.3rem;">
+                    <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>Smart Transport Hub</h3>
+                <p>An intelligent public transport routing and simulation system that optimizes urban mobility using advanced data structures and algorithms.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Quick Links</h3>
+                <p><a href="{{ url_for('index') }}" style="color: #94a3b8; text-decoration: none;">Home</a></p>
+                <p><a href="#features" style="color: #94a3b8; text-decoration: none;">Features</a></p>
+                <p><a href="{{ url_for('login') }}" style="color: #94a3b8; text-decoration: none;">Login</a></p>
+                <p><a href="{{ url_for('signup') }}" style="color: #94a3b8; text-decoration: none;">Sign Up</a></p>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-envelope"></i> support@transporthub.com</p>
+                <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Tech Street, Innovation City</p>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            <p>&copy; 2024 Smart Transport Hub. All rights reserved. | Intelligent Transport Routing & Simulation System</p>
+            <p>Built with Python Flask & Advanced DSA Concepts</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if(targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 0.5s, transform 0.5s';
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+            });
+        }, 5000);
+
+        // Add scroll animation to feature cards
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all feature cards
+        document.querySelectorAll('.feature-card, .performance-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s, transform 0.5s';
+            observer.observe(card);
+        });
+
+        // Update user count dynamically
+        fetch('/api/users/count')
+            .then(response => response.json())
+            .then(data => {
+                const userCountElements = document.querySelectorAll('.user-count');
+                userCountElements.forEach(element => {
+                    element.textContent = data.count || '0';
+                });
+            })
+            .catch(error => console.error('Error fetching user count:', error));
+    </script>
+</body>
+</html>

@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Transport Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #1e3a8a;
+            --secondary-blue: #3b82f6;
+            --accent-teal: #0d9488;
+            --accent-purple: #8b5cf6;
+            --dark-bg: #0a192f;
+            --light-bg: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1e3a8a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+        
+        .auth-container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            min-height: 700px;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .auth-left {
+            flex: 1.2;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--primary-blue) 100%);
+            color: white;
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-left::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .auth-right {
+            flex: 1;
+            padding: 40px;
+            background: var(--light-bg);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .auth-header {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .logo-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--secondary-blue), var(--accent-purple));
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+             position: relative;
+            bottom: 190px;
+        }
+        
+        .logo-text h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #ffffff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+            position: relative;
+            bottom: 190px;
+        }
+        
+        .logo-text p {
+            color: #94a3b8;
+            font-size: 1rem;
+            font-weight: 500;
+             position: relative;
+            bottom: 185px;
+        }
+        
+        .auth-tagline {
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .auth-tagline h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #c7d2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative
+            ;
+            bottom: 150px;
+        }
+        
+        .auth-tagline p {
+            color: #cbd5e1;
+            font-size: 1.1rem;
+            max-width: 90%;
+             position: relative
+            ;
+            bottom: 150px;
+        }
+        
+        .auth-benefits {
+            position: relative;
+            z-index: 2;
+            bottom: 130px;
+        }
+        
+        .benefit-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .benefit-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .benefit-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: var(--accent-purple);
+            margin-bottom: 15px;
+        }
+        
+        .benefit-content h4 {
+            color: white;
+            margin-bottom: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .benefit-content p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        
+        .auth-title {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .auth-title h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .auth-title h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-teal));
+            border-radius: 2px;
+        }
+        
+        .auth-title p {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+        
+        .auth-form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        
+        .auth-form {
+            margin-top: 10px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .form-label i {
+            color: var(--secondary-blue);
+            width: 20px;
+            text-align: center;
+        }
+        
+        .input-with-icon {
+            position: relative;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 14px 14px 45px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            color: var(--text-dark);
+            background: var(--light-bg);
+            font-weight: 500;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            outline: none;
+            background: white;
+        }
+        
+        .form-group input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            z-index: 2;
+        }
+        
+        .form-hint {
+            display: block;
+            color: var(--text-light);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            margin-left: 5px;
+        }
+        
+        .role-info-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .role-info-icon {
+            font-size: 1.5rem;
+            color: var(--accent-purple);
+            margin-bottom: 10px;
+        }
+        
+        .role-info-title {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        
+        .role-info-text {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .btn-auth {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--primary-blue));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+        }
+        
+        .btn-auth:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4);
+        }
+        
+        .btn-auth:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn-auth:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+        
+        .divider:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e2e8f0;
+        }
+        
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: var(--text-light);
+            position: relative;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .auth-footer p {
+            color: var(--text-light);
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent-teal);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 25px rgba(13, 148, 136, 0.2);
+        }
+        
+        .btn-login:hover {
+            background: #0f766e;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(13, 148, 136, 0.3);
+        }
+        
+        .back-home {
+            margin-top: 20px;
+        }
+        
+        .back-home a {
+            color: var(--secondary-blue);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+        
+        .back-home a:hover {
+            color: var(--primary-blue);
+            text-decoration: underline;
+        }
+        
+        .alert-container {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 5px solid;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left-color: var(--success);
+            color: #065f46;
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: var(--error);
+            color: #7f1d1d;
+        }
+        
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: var(--warning);
+            color: #78350f;
+        }
+        
+        .alert-icon {
+            font-size: 1.2rem;
+        }
+        
+        .password-strength {
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .strength-meter {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--error);
+            border-radius: 3px;
+            transition: var(--transition);
+        }
+        
+        .strength-text {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-align: right;
+        }
+        
+        .terms-agreement {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .terms-agreement input[type="checkbox"] {
+            margin-top: 3px;
+            accent-color: var(--secondary-blue);
+        }
+        
+        .terms-agreement label {
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            cursor: pointer;
+        }
+        
+        .terms-agreement a {
+            color: var(--secondary-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .terms-agreement a:hover {
+            text-decoration: underline;
+        }
+        
+        .system-info {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.8rem;
+        }
+        
+        .system-info p {
+            margin-bottom: 5px;
+        }
+        
+        .system-stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 1100px) {
+            .benefit-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .auth-left, .auth-right {
+                padding: 40px 30px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .auth-container {
+                flex-direction: column;
+                max-width: 600px;
+                min-height: auto;
+            }
+            
+            .auth-left {
+                padding: 40px 30px;
+            }
+            
+            .auth-logo {
+                margin-bottom: 30px;
+            }
+            
+            .auth-tagline h2 {
+                font-size: 1.8rem;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            body {
+                padding: 15px;
+            }
+            
+            .auth-left, .auth-right {
+                padding: 30px 20px;
+            }
+            
+            .auth-form-container {
+                padding: 20px;
+            }
+            
+            .logo-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.8rem;
+            }
+            
+            .logo-text h1 {
+                font-size: 1.8rem;
+            }
+            
+            .auth-title h2 {
+                font-size: 1.6rem;
+            }
+            
+            .system-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-left">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-bus-alt"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Smart Transport Hub</h1>
+                        <p>Join the Future of Transportation</p>
+                    </div>
+                </div>
+                
+                <div class="auth-tagline">
+                    <h2>Create Your Account Today</h2>
+                    <p>Become part of our intelligent transport ecosystem and experience seamless urban mobility management.</p>
+                </div>
+            </div>
+            
+            <div class="auth-benefits">
+                <div class="benefit-grid">
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h4>Enterprise Security</h4>
+                            <p>Military-grade encryption and secure authentication protocols</p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <i class="fas fa-chart-network"></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h4>Advanced Analytics</h4>
+                            <p>Real-time insights and predictive analytics dashboard</p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h4>Powerful Tools</h4>
+                            <p>Comprehensive fleet management and route optimization tools</p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h4>Role-Based Access</h4>
+                            <p>Custom permissions for administrators, managers, and passengers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="auth-right">
+            <div class="auth-title">
+                <h2>Create Your Account</h2>
+                <p>Register for Transport Management System</p>
+            </div>
+            
+            <div class="auth-form-container">
+                <div class="alert-container">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">
+                                    <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' if category == 'error' else 'info-circle' }} alert-icon"></i>
+                                    <span>{{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                
+                <div class="role-info-box">
+                    <div class="role-info-icon">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="role-info-title">Account Information</div>
+                    <div class="role-info-text">
+                        All new accounts are created as <strong>Passenger accounts</strong> by default. 
+                        For <strong>Bus Manager</strong> or <strong>Administrator</strong> access, 
+                        please contact the system administrator after registration.
+                    </div>
+                </div>
+                
+                <form class="auth-form" method="POST" action="{{ url_for('signup') }}" id="signupForm">
+                    <input type="hidden" id="role" name="role" value="passenger" required>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="username">
+                                <i class="fas fa-user-circle"></i> Username
+                            </label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" id="username" name="username" required 
+                                       placeholder="Choose a username" autofocus minlength="3" maxlength="30">
+                            </div>
+                            <span class="form-hint">3-30 characters, letters and numbers only</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="email">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-envelope input-icon"></i>
+                                <input type="email" id="email" name="email" required 
+                                       placeholder="Enter your email address">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="phone">
+                                <i class="fas fa-phone-alt"></i> Phone Number
+                            </label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-phone input-icon"></i>
+                                <input type="tel" id="phone" name="phone" required 
+                                       placeholder="Enter your phone number">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="full_name">
+                                <i class="fas fa-id-card"></i> Full Name
+                            </label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" id="full_name" name="full_name" 
+                                       placeholder="Enter your full name">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="password">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input type="password" id="password" name="password" required 
+                                       placeholder="Create a strong password" minlength="6">
+                                <button type="button" class="password-toggle" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength">
+                                <div class="strength-meter">
+                                    <div class="strength-fill" id="strengthFill"></div>
+                                </div>
+                                <div class="strength-text" id="strengthText">Password strength</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="confirm_password">
+                                <i class="fas fa-lock"></i> Confirm Password
+                            </label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input type="password" id="confirm_password" name="confirm_password" required 
+                                       placeholder="Confirm your password">
+                                <button type="button" class="password-toggle" id="toggleConfirmPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="terms-agreement">
+                        <input type="checkbox" id="terms" name="terms" required>
+                        <label for="terms">
+                            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. 
+                            I understand that my data will be processed in accordance with transport regulations.
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn-auth" id="submitBtn">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+                
+                <div class="divider">
+                    <span>Already registered?</span>
+                </div>
+                
+                <div class="auth-footer">
+                    <a href="{{ url_for('login') }}" class="btn-login">
+                        <i class="fas fa-sign-in-alt"></i> Sign in to Existing Account
+                    </a>
+                    
+                    <div class="back-home">
+                        <a href="{{ url_for('index') }}">
+                            <i class="fas fa-arrow-left"></i> Return to Homepage
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="system-info">
+                <p>Transport Management System v3.2.1 • Enterprise Edition</p>
+                <div class="system-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">15K+</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">99.9%</div>
+                        <div class="stat-label">Reliability</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">24/7</div>
+                        <div class="stat-label">Support</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password toggle functionality
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            const icon = this.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+        
+        toggleConfirmPassword.addEventListener('click', function() {
+            const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPasswordInput.setAttribute('type', type);
+            const icon = this.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+        
+        // Password strength indicator
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            const strengthFill = document.getElementById('strengthFill');
+            const strengthText = document.getElementById('strengthText');
+            
+            let strength = 0;
+            let text = 'Weak';
+            let color = '#ef4444'; // Red
+            
+            // Length check
+            if (password.length >= 8) strength += 25;
+            
+            // Mixed case check
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+            
+            // Number check
+            if (/\d/.test(password)) strength += 25;
+            
+            // Special character check
+            if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+            
+            // Update strength meter
+            strengthFill.style.width = `${strength}%`;
+            
+            // Update text and color
+            if (strength >= 75) {
+                text = 'Strong';
+                color = '#10b981'; // Green
+            } else if (strength >= 50) {
+                text = 'Good';
+                color = '#f59e0b'; // Orange
+            } else if (strength >= 25) {
+                text = 'Fair';
+                color = '#f59e0b'; // Orange
+            }
+            
+            strengthFill.style.background = color;
+            strengthText.textContent = `Password strength: ${text}`;
+            strengthText.style.color = color;
+        });
+        
+        // Form validation
+        const form = document.getElementById('signupForm');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        form.addEventListener('submit', function(e) {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const terms = document.getElementById('terms').checked;
+            
+            // Basic validation
+            let isValid = true;
+            let errorMessage = '';
+            
+            // Username validation
+            if (username.length < 3) {
+                isValid = false;
+                errorMessage = 'Username must be at least 3 characters long.';
+                document.getElementById('username').focus();
+            }
+            
+            // Email validation
+            else if (!isValidEmail(email)) {
+                isValid = false;
+                errorMessage = 'Please enter a valid email address.';
+                document.getElementById('email').focus();
+            }
+            
+            // Phone validation
+            else if (!isValidPhone(phone)) {
+                isValid = false;
+                errorMessage = 'Please enter a valid phone number (at least 10 digits).';
+                document.getElementById('phone').focus();
+            }
+            
+            // Password validation
+            else if (password.length < 6) {
+                isValid = false;
+                errorMessage = 'Password must be at least 6 characters long.';
+                passwordInput.focus();
+            }
+            
+            else if (password !== confirmPassword) {
+                isValid = false;
+                errorMessage = 'Passwords do not match. Please try again.';
+                confirmPasswordInput.focus();
+            }
+            
+            // Terms agreement
+            else if (!terms) {
+                isValid = false;
+                errorMessage = 'You must agree to the Terms of Service and Privacy Policy.';
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                showAlert('error', errorMessage);
+                return false;
+            }
+            
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+            
+            return true;
+        });
+        
+        // Helper functions
+        function isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        function isValidPhone(phone) {
+            const digits = phone.replace(/\D/g, '');
+            return digits.length >= 10;
+        }
+        
+        function showAlert(type, message) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert:not(.alert-container *)');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            // Create alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'info-circle'} alert-icon"></i>
+                <span>${message}</span>
+            `;
+            
+            // Insert into alert container
+            const alertContainer = document.querySelector('.alert-container');
+            alertContainer.appendChild(alertDiv);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                alertDiv.style.transition = 'opacity 0.5s, transform 0.5s';
+                alertDiv.style.opacity = '0';
+                alertDiv.style.transform = 'translateX(20px)';
+                setTimeout(() => alertDiv.remove(), 500);
+            }, 5000);
+        }
+        
+        // Auto-hide existing alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 0.5s, transform 0.5s';
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateX(20px)';
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+            });
+        }, 5000);
+        
+        // Auto-focus on username field
+        document.getElementById('username').focus();
+    </script>
+</body>
+</html>

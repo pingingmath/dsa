@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tickets - Smart Transport Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --header-height: 70px;
+            --primary: #0d9488;
+            --primary-dark: #0f766e;
+            --muted: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fb;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .nav-links {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: white;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-left-color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .header {
+            height: var(--header-height);
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .header-left h1 {
+            font-size: 1.8rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .content-area {
+            padding: 30px;
+            display: grid;
+            gap: 25px;
+        }
+
+        .tickets-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(13, 148, 136, 0.3);
+        }
+
+        .tickets-header h2 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .tickets-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
+            gap: 24px;
+        }
+
+        .map-card,
+        .tickets-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+        }
+
+        .map-card h3,
+        .tickets-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            color: #1e293b;
+        }
+
+        .map-container {
+            position: relative;
+            background: #e2e8f0;
+            border-radius: 12px;
+            height: 360px;
+            overflow: hidden;
+        }
+
+        .map-lines {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .map-marker {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #334155;
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .map-marker:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        .map-marker.selected-start {
+            background: #22c55e;
+        }
+
+        .map-marker.selected-end {
+            background: #f97316;
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .ticket-form {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .ticket-form .field {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            color: #1e293b;
+        }
+
+        .bus-select {
+            margin-top: 6px;
+            width: 100%;
+            border: 1px solid #cbd5f5;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.95rem;
+        }
+
+        .bus-meta {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .ticket-form .label {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .ticket-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .tickets-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .ticket-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .ticket-item h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #0f766e;
+        }
+
+        .ticket-meta {
+            font-size: 0.9rem;
+            color: #475569;
+            display: grid;
+            gap: 6px;
+        }
+
+        .ticket-path {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 10px;
+            color: var(--muted);
+        }
+
+        @media (max-width: 1024px) {
+            .tickets-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+
+            .nav-item span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Welcome!</h2>
+            <p>{{ user.full_name }}</p>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('passenger_dashboard') }}" class="nav-item" id="dashboardNav">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('passenger_my_tickets') }}" class="nav-item active" id="ticketsNav">
+                <i class="fas fa-ticket-alt"></i>
+                <span>My Tickets</span>
+            </a>
+            <a href="{{ url_for('passenger_plan_journey') }}" class="nav-item" id="findRouteNav">
+                <i class="fas fa-route"></i>
+                <span>Find Route</span>
+            </a>
+            <a href="{{ url_for('passenger_live_tracking') }}" class="nav-item" id="liveTrackingNav">
+                <i class="fas fa-bus"></i>
+                <span>Live Tracking</span>
+            </a>
+            <a href="{{ url_for('passenger_book_ticket_page') }}" class="nav-item" id="historyNav">
+                <i class="fas fa-history"></i>
+                <span>Book Ticket</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item" id="logoutNav">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div class="header-left">
+                <h1>My Tickets</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-avatar">{{ user.full_name[0] if user.full_name else 'U' }}</div>
+                    <div>
+                        <h4>{{ user.full_name }}</h4>
+                        <p>Passenger</p>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutButton">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="tickets-header">
+                <h2><i class="fas fa-ticket-alt"></i> My Tickets</h2>
+                <p>Select your pickup and dropoff stops to create a new ticket.</p>
+            </div>
+
+            <div class="tickets-layout">
+                <div class="map-card">
+                    <h3>Select Stops on the Map</h3>
+                    <div class="map-container" id="mapContainer">
+                        <svg class="map-lines" id="mapLines"></svg>
+                    </div>
+                    <div class="map-legend">
+                        <span><span class="legend-dot" style="background:#334155"></span>Stop</span>
+                        <span><span class="legend-dot" style="background:#22c55e"></span>Start</span>
+                        <span><span class="legend-dot" style="background:#f97316"></span>End</span>
+                    </div>
+
+                    <div class="ticket-form">
+                        <div class="field">
+                            <div class="label">Selected Start Stop</div>
+                            <div id="selectedStart">Select a start stop</div>
+                        </div>
+                        <div class="field">
+                            <div class="label">Selected End Stop</div>
+                            <div id="selectedEnd">Select an end stop</div>
+                        </div>
+                        <div class="field">
+                            <div class="label">Computed Route</div>
+                            <div id="selectedRoute">Waiting for selections</div>
+                        </div>
+                        <div class="field">
+                            <div class="label">Selected Bus</div>
+                            <select id="busSelect" class="bus-select">
+                                <option value="">Select a bus</option>
+                            </select>
+                            <div class="bus-meta" id="busMeta">Arrival time will show here.</div>
+                        </div>
+                        <div class="field">
+                            <div class="label">Estimated Fare</div>
+                            <div id="estimatedFare">Select stops to calculate fare</div>
+                        </div>
+                        <div class="ticket-actions">
+                            <button class="btn btn-primary" id="createTicketBtn" disabled>
+                                <i class="fas fa-ticket-alt"></i> Create Ticket
+                            </button>
+                            <button class="btn btn-secondary" id="resetSelectionBtn">
+                                <i class="fas fa-undo"></i> Reset Selection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tickets-card">
+                    <h3>Your Recent Tickets</h3>
+                    <div class="tickets-list" id="ticketsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const mapContainer = document.getElementById('mapContainer');
+        const selectedStart = document.getElementById('selectedStart');
+        const selectedEnd = document.getElementById('selectedEnd');
+        const selectedRoute = document.getElementById('selectedRoute');
+        const busSelect = document.getElementById('busSelect');
+        const busMeta = document.getElementById('busMeta');
+        const estimatedFare = document.getElementById('estimatedFare');
+        const mapLines = document.getElementById('mapLines');
+        const createTicketBtn = document.getElementById('createTicketBtn');
+        const resetSelectionBtn = document.getElementById('resetSelectionBtn');
+        const ticketsList = document.getElementById('ticketsList');
+        const logoutButton = document.getElementById('logoutButton');
+
+        let stops = [];
+        let edges = [];
+        let markers = [];
+        let startStop = null;
+        let endStop = null;
+        let currentDistance = null;
+        let buses = [];
+
+        function confirmLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '{{ url_for("logout") }}';
+            }
+        }
+
+        logoutButton.addEventListener('click', confirmLogout);
+
+        resetSelectionBtn.addEventListener('click', () => {
+            startStop = null;
+            endStop = null;
+            currentDistance = null;
+            updateSelectionUI();
+            selectedRoute.textContent = 'Waiting for selections';
+            estimatedFare.textContent = 'Select stops to calculate fare';
+            updateMarkers();
+        });
+
+        createTicketBtn.addEventListener('click', () => {
+            if (!startStop || !endStop || !busSelect.value) {
+                return;
+            }
+            createTicketBtn.disabled = true;
+            fetch('/api/passenger/tickets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    start_stop: startStop,
+                    end_stop: endStop,
+                    bus_number: busSelect.value
+                })
+            })
+            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) {
+                    throw new Error(data.error || 'Unable to create ticket');
+                }
+                startStop = null;
+                endStop = null;
+                updateSelectionUI();
+                selectedRoute.textContent = 'Ticket created successfully.';
+                estimatedFare.textContent = 'Select stops to calculate fare';
+                loadTickets();
+                updateMarkers();
+            })
+            .catch(error => {
+                selectedRoute.textContent = error.message;
+            })
+            .finally(() => {
+                createTicketBtn.disabled = !(startStop && endStop && busSelect.value);
+            });
+        });
+
+        function updateSelectionUI() {
+            selectedStart.textContent = startStop || 'Select a start stop';
+            selectedEnd.textContent = endStop || 'Select an end stop';
+            createTicketBtn.disabled = !(startStop && endStop && busSelect.value);
+        }
+
+        function updateMarkers() {
+            markers.forEach(marker => {
+                marker.classList.remove('selected-start', 'selected-end');
+                if (marker.dataset.stop === startStop) {
+                    marker.classList.add('selected-start');
+                }
+                if (marker.dataset.stop === endStop) {
+                    marker.classList.add('selected-end');
+                }
+            });
+        }
+
+        function selectStop(stopName) {
+            if (!startStop || (startStop && endStop)) {
+                startStop = stopName;
+                endStop = null;
+            } else if (startStop && !endStop && stopName !== startStop) {
+                endStop = stopName;
+            }
+            updateSelectionUI();
+            updateMarkers();
+            if (startStop && endStop) {
+                fetchRoute();
+            } else {
+                selectedRoute.textContent = 'Waiting for selections';
+            }
+        }
+
+        function fetchStops() {
+            fetch('/api/passenger/graph')
+                .then(response => response.json())
+                .then(data => {
+                    stops = data.stops || [];
+                    edges = data.edges || [];
+                    renderMap();
+                })
+                .catch(() => {
+                    mapContainer.textContent = 'Unable to load stops.';
+                });
+        }
+
+        function renderMap() {
+            mapContainer.querySelectorAll('.map-marker').forEach(marker => marker.remove());
+            mapLines.innerHTML = '';
+            markers = [];
+            if (!stops.length) {
+                const message = document.createElement('div');
+                message.textContent = 'No stops available.';
+                message.style.padding = '20px';
+                message.style.color = '#475569';
+                mapContainer.appendChild(message);
+                return;
+            }
+
+            const rect = mapContainer.getBoundingClientRect();
+            const width = rect.width || 500;
+            const height = rect.height || 360;
+            const padding = 30;
+
+            const hasCoords = stops.some(stop => stop.latitude !== null && stop.longitude !== null);
+            let minLat = 0, maxLat = 0, minLng = 0, maxLng = 0;
+            if (hasCoords) {
+                const coords = stops.filter(stop => stop.latitude !== null && stop.longitude !== null);
+                minLat = Math.min(...coords.map(stop => stop.latitude));
+                maxLat = Math.max(...coords.map(stop => stop.latitude));
+                minLng = Math.min(...coords.map(stop => stop.longitude));
+                maxLng = Math.max(...coords.map(stop => stop.longitude));
+            }
+
+            const positions = new Map();
+            stops.forEach((stop, index) => {
+                let x;
+                let y;
+                if (hasCoords && stop.latitude !== null && stop.longitude !== null && maxLat !== minLat && maxLng !== minLng) {
+                    const latRatio = (stop.latitude - minLat) / (maxLat - minLat);
+                    const lngRatio = (stop.longitude - minLng) / (maxLng - minLng);
+                    x = padding + lngRatio * (width - padding * 2);
+                    y = padding + (1 - latRatio) * (height - padding * 2);
+                } else {
+                    const angle = (index / stops.length) * Math.PI * 2;
+                    x = width / 2 + Math.cos(angle) * (width / 2 - padding);
+                    y = height / 2 + Math.sin(angle) * (height / 2 - padding);
+                }
+
+                positions.set(stop.name, { x, y });
+
+                const marker = document.createElement('div');
+                marker.className = 'map-marker';
+                marker.style.left = `${x}px`;
+                marker.style.top = `${y}px`;
+                marker.title = stop.name;
+                marker.dataset.stop = stop.name;
+                marker.addEventListener('click', () => selectStop(stop.name));
+                mapContainer.appendChild(marker);
+                markers.push(marker);
+            });
+            renderEdges(positions);
+            updateMarkers();
+        }
+
+        function renderEdges(positions) {
+            const width = mapContainer.clientWidth || 500;
+            const height = mapContainer.clientHeight || 360;
+            mapLines.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            edges.forEach(edge => {
+                const from = positions.get(edge.from);
+                const to = positions.get(edge.to);
+                if (!from || !to) {
+                    return;
+                }
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', from.x);
+                line.setAttribute('y1', from.y);
+                line.setAttribute('x2', to.x);
+                line.setAttribute('y2', to.y);
+                line.setAttribute('stroke', '#94a3b8');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('opacity', '0.6');
+                mapLines.appendChild(line);
+            });
+        }
+
+        function fetchRoute() {
+            fetch('/api/passenger/route', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    start_stop: startStop,
+                    end_stop: endStop
+                })
+            })
+            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) {
+                    throw new Error(data.error || 'Unable to compute route');
+                }
+                currentDistance = data.distance;
+                selectedRoute.textContent = data.path.join(' → ');
+                estimatedFare.textContent = `Estimated fare: Rs. ${Math.max(Math.round(data.distance * 2.5 * 100) / 100, 10).toFixed(2)}`;
+            })
+            .catch(error => {
+                selectedRoute.textContent = error.message;
+                estimatedFare.textContent = 'Select stops to calculate fare';
+            });
+        }
+
+        function loadBuses() {
+            fetch('/api/passenger/buses')
+                .then(response => response.json())
+                .then(data => {
+                    buses = data.buses || [];
+                    busSelect.innerHTML = '<option value=\"\">Select a bus</option>';
+                    buses.forEach(bus => {
+                        const option = document.createElement('option');
+                        option.value = bus.bus_number;
+                        option.textContent = `Bus ${bus.bus_number} (${bus.route_name || 'Route'})`;
+                        busSelect.appendChild(option);
+                    });
+                });
+        }
+
+        busSelect.addEventListener('change', () => {
+            const bus = buses.find(item => String(item.bus_number) === busSelect.value);
+            if (bus) {
+                busMeta.textContent = `Next arrival: ${bus.next_arrival || 'TBD'} • Driver: ${bus.driver_name || 'N/A'}`;
+            } else {
+                busMeta.textContent = 'Arrival time will show here.';
+            }
+            updateSelectionUI();
+        });
+
+        function loadTickets() {
+            fetch('/api/passenger/tickets')
+                .then(response => response.json())
+                .then(data => renderTickets(data.tickets || []))
+                .catch(() => renderTickets([]));
+        }
+
+        function renderTickets(tickets) {
+            ticketsList.innerHTML = '';
+            if (!tickets.length) {
+                ticketsList.innerHTML = '<div class="empty-state">No tickets yet. Select stops on the map to create one.</div>';
+                return;
+            }
+            tickets.forEach(ticket => {
+                const card = document.createElement('div');
+                card.className = 'ticket-item';
+                const route = ticket.path && ticket.path.length ? ticket.path.join(' → ') : `${ticket.from_stop} → ${ticket.to_stop}`;
+                card.innerHTML = `
+                    <h4>${ticket.ticket_id}</h4>
+                    <div class="ticket-meta">
+                        <div><strong>From:</strong> ${ticket.from_stop || 'N/A'}</div>
+                        <div><strong>To:</strong> ${ticket.to_stop || 'N/A'}</div>
+                        <div><strong>Bus:</strong> ${ticket.bus_number || 'N/A'}</div>
+                        <div><strong>Fare:</strong> Rs. ${ticket.fare !== undefined ? ticket.fare : 'N/A'}</div>
+                        <div><strong>Arrival:</strong> ${ticket.eta || 'TBD'}</div>
+                        <div><strong>Status:</strong> ${ticket.status || 'open'}</div>
+                        <div><strong>Created:</strong> ${ticket.created_at ? new Date(ticket.created_at).toLocaleString() : 'N/A'}</div>
+                    </div>
+                    <div class="ticket-path"><strong>Route:</strong> ${route}</div>
+                `;
+                ticketsList.appendChild(card);
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            if (stops.length) {
+                renderMap();
+            }
+        });
+
+        fetchStops();
+        loadBuses();
+        loadTickets();
+    </script>
+</body>
+</html>

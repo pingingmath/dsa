@@ -1,0 +1,46 @@
+{
+  "routes": [
+    {
+      "route_id": "473551c3-31b3-4759-9aae-86f9bc0dbe9c",
+      "route_name": "route 5",
+      "created_at": "2026-01-06T22:00:27.973079",
+      "total_stops": 4,
+      "stops": [
+        {
+          "stop_name": "kalma",
+          "wait_time": 5,
+          "location": "",
+          "distance_from_previous": 0.0,
+          "stop_id": "7ac70b29-f879-48ad-8739-232be92650c7",
+          "added_at": "2026-01-05T23:59:37.561316"
+        },
+        {
+          "stop_name": "GARHI SHAHU",
+          "wait_time": 5,
+          "location": "",
+          "distance_from_previous": 6.0,
+          "stop_id": "83aa7f78-79a2-487f-8190-71361d761367",
+          "added_at": "2026-01-05T23:59:52.747808"
+        },
+        {
+          "stop_name": "liberty",
+          "wait_time": 5,
+          "location": "",
+          "distance_from_previous": 90.0,
+          "stop_id": "b4c6042b-9c61-40fe-b54b-cd3800e15128",
+          "added_at": "2026-01-06T00:00:05.767730"
+        },
+        {
+          "stop_name": "uet",
+          "wait_time": 5,
+          "location": "",
+          "distance_from_previous": 0.0,
+          "stop_id": "4fac6bc3-04be-493d-b779-362a2edb4d88",
+          "added_at": "2026-01-06T22:00:27.972925"
+        }
+      ]
+    }
+  ],
+  "total_routes": 1,
+  "last_updated": "2026-01-06T22:00:27.973144"
+}

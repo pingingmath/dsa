@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <title>500 - Internal Server Error</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                text-align: center;
+                padding: 50px;
+                background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%);
+                color: white;
+            }
+            h1 {
+                font-size: 3rem;
+                margin-bottom: 20px;
+            }
+            p {
+                font-size: 1.2rem;
+                margin-bottom: 30px;
+            }
+            a {
+                color: #3b82f6;
+                text-decoration: none;
+                font-weight: bold;
+                padding: 10px 20px;
+                background: white;
+                border-radius: 5px;
+                display: inline-block;
+                margin: 10px;
+            }
+            a:hover {
+                background: #f8fafc;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>500 - Internal Server Error</h1>
+        <p>Something went wrong on our server. Please try again later.</p>
+        <div>
+            <a href="/">Return to Homepage</a>
+            <a href="/login">Go to Login</a>
+        </div>
+    </body>
+    </html>
+    """, 500
+
+if __name__ == '__main__':
+    print("=" * 60)
+    print("Intelligent Transport Routing & Simulation System")
+    print("=" * 60)
+    print("\n🚀 Starting Server...")
+    print("\n🔑 Admin Credentials:")
+    print(f"   Username: {ADMIN_USERNAME}")
+    print(f"   Password: {ADMIN_PASSWORD}")
+    print("\n🌐 Application URLs:")
+    print("   Homepage: http://localhost:5000")
+    print("   Login: http://localhost:5000/login")
+    print("   Signup: http://localhost:5000/signup")
+    print("   Admin Dashboard: http://localhost:5000/admin/dashboard")
+    print("   Bus Management: http://localhost:5000/admin/bus_management")
+    print("   Route Management: http://localhost:5000/admin/routes")
+    print("   Passenger Dashboard: http://localhost:5000/passenger/dashboard")
+    print("\n📊 System Information:")
+    print(f"   Total Passengers: {user_manager.get_user_count()}")
+    print(f"   Total Buses: {bus_manager.get_bus_statistics()['total_buses']}")
+    print(f"   Data Directory: {data_dir}")
+    print("\n✅ Server is running on http://localhost:5000")
+    print("   Press Ctrl+C to stop the server")
+    print("=" * 60)
+    app.run(debug=True, port=5000)
