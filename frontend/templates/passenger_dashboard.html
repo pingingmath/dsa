@@ -201,6 +201,169 @@
             gap: 25px;
             margin-bottom: 40px;
         }
+
+        .tracking-card {
+            background: white;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+            margin-bottom: 40px;
+        }
+
+        .tracking-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+            gap: 24px;
+        }
+
+        .tracking-map {
+            position: relative;
+            height: 360px;
+            border-radius: 16px;
+            background: radial-gradient(circle at top, #f8fafc 0%, #e2e8f0 50%, #cbd5f5 100%);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .tracking-map::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(0deg, rgba(148, 163, 184, 0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.15) 1px, transparent 1px);
+            background-size: 30px 30px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .tracking-map svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .tracking-edge {
+            stroke: #94a3b8;
+            stroke-width: 2;
+            opacity: 0.7;
+        }
+
+        .tracking-edge.active {
+            stroke: #2563eb;
+            stroke-width: 3.5;
+            stroke-dasharray: 10 8;
+            animation: trackingDash 1.5s linear infinite;
+            opacity: 1;
+        }
+
+        @keyframes trackingDash {
+            to {
+                stroke-dashoffset: -18;
+            }
+        }
+
+        .tracking-marker {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #334155;
+            border: 3px solid #fff;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
+        }
+
+        .tracking-marker.start {
+            background: #ef4444;
+        }
+
+        .tracking-marker.end {
+            background: #22c55e;
+        }
+
+        .tracking-marker span {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            color: #1e293b;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .bus-dot {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #f59e0b;
+            border: 4px solid #fff;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .tracking-controls {
+            display: grid;
+            gap: 12px;
+        }
+
+        .tracking-controls select,
+        .tracking-controls button {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #cbd5f5;
+            font-size: 0.95rem;
+        }
+
+        .tracking-controls button {
+            background: #0d9488;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .tracking-controls button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .tracking-status {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 10px;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.12);
+            color: #2563eb;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .tracking-stats {
+            margin-top: 16px;
+            display: grid;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #475569;
+        }
         
         .stat-card {
             background: white;
@@ -496,19 +659,19 @@
                 <i class="fas fa-ticket-alt"></i>
                 <span>My Tickets</span>
             </a>
-            <a href="#" class="nav-item" id="findRouteNav">
+            <a href="{{ url_for('passenger_plan_journey') }}" class="nav-item" id="findRouteNav">
                 <i class="fas fa-route"></i>
                 <span>Find Route</span>
             </a>
-            <a href="#" class="nav-item" id="liveTrackingNav">
+            <a href="{{ url_for('passenger_live_tracking') }}" class="nav-item" id="liveTrackingNav">
                 <i class="fas fa-bus"></i>
                 <span>Live Tracking</span>
             </a>
-            <a href="#" class="nav-item" id="historyNav">
+            <a href="{{ url_for('passenger_travel_history') }}" class="nav-item" id="historyNav">
                 <i class="fas fa-history"></i>
                 <span>Travel History</span>
             </a>
-            <a href="#" class="nav-item" id="profileNav">
+            <a href="{{ url_for('passenger_profile_page') }}" class="nav-item" id="profileNav">
                 <i class="fas fa-user-cog"></i>
                 <span>Profile</span>
             </a>
@@ -581,6 +744,48 @@
                     <div class="stat-info">
                         <h3 id="currentTime">Now</h3>
                         <p>Current Time</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tracking-card">
+                <h2 class="section-title">
+                    <i class="fas fa-map-marked-alt"></i> Live Journey Tracking
+                </h2>
+                <div class="tracking-grid">
+                    <div class="tracking-map" id="trackingMap">
+                        <svg id="trackingLines"></svg>
+                        <div class="bus-dot" id="busDot" style="display: none;">🚌</div>
+                    </div>
+                    <div class="tracking-controls">
+                        <label>
+                            From Stop
+                            <select id="trackingStart">
+                                <option value="">Select start</option>
+                            </select>
+                        </label>
+                        <label>
+                            To Stop
+                            <select id="trackingEnd">
+                                <option value="">Select destination</option>
+                            </select>
+                        </label>
+                        <label>
+                            Bus
+                            <select id="trackingBus">
+                                <option value="">Select bus (optional)</option>
+                            </select>
+                        </label>
+                        <button id="startJourneyBtn" disabled>Start Journey</button>
+                        <div class="tracking-status">
+                            <span class="status-pill" id="journeyStatus">Idle</span>
+                            <span id="journeyRoute">Route: --</span>
+                        </div>
+                        <div class="tracking-stats">
+                            <div><strong>Remaining Distance:</strong> <span id="remainingDistance">-- km</span></div>
+                            <div><strong>Estimated Time:</strong> <span id="remainingTime">-- min</span></div>
+                            <div><strong>Current Segment:</strong> <span id="currentSegment">--</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -726,6 +931,9 @@
             
             // Load user data
             loadUserData();
+
+            // Setup live tracking
+            setupLiveTracking();
         });
         
         // Update current time
@@ -851,7 +1059,7 @@
             if (bookTicketBtn) {
                 bookTicketBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    showBookTicket();
+                    window.location.href = '{{ url_for("passenger_book_ticket_page") }}';
                 });
             }
             
@@ -881,7 +1089,7 @@
             if (planJourneyBtn) {
                 planJourneyBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    alert('Plan Journey feature coming soon!');
+                    window.location.href = '{{ url_for("passenger_plan_journey") }}';
                 });
             }
             
@@ -959,27 +1167,270 @@
         }
         
         function showMyTickets() {
-            alert('My Tickets feature coming soon!');
+            window.location.href = '{{ url_for("passenger_my_tickets") }}';
         }
         
         function showFindRoute() {
-            alert('Find Route feature coming soon!');
+            window.location.href = '{{ url_for("passenger_plan_journey") }}';
         }
         
         function showLiveTracking() {
-            alert('Live Tracking feature coming soon!');
+            window.location.href = '{{ url_for("passenger_live_tracking") }}';
         }
         
         function showTravelHistory() {
-            alert('Travel History feature coming soon!');
+            window.location.href = '{{ url_for("passenger_travel_history") }}';
         }
         
         function showProfile() {
-            alert('Profile feature coming soon!');
+            window.location.href = '{{ url_for("passenger_profile_page") }}';
         }
+
+        // Live tracking setup
+        let trackingStops = [];
+        let trackingEdges = [];
+        let trackingPositions = new Map();
+        let journeyId = null;
+        let journeyPoller = null;
+        let activeSegments = [];
+
+        function setupLiveTracking() {
+            fetchTrackingGraph();
+            fetchTrackingBuses();
+            setupTrackingControls();
+        }
+
+        function setupTrackingControls() {
+            const startSelect = document.getElementById('trackingStart');
+            const endSelect = document.getElementById('trackingEnd');
+            const startBtn = document.getElementById('startJourneyBtn');
+
+            if (!startSelect || !endSelect || !startBtn) return;
+
+            const updateButtonState = () => {
+                startBtn.disabled = !(startSelect.value && endSelect.value);
+                updateTrackingMarkers();
+            };
+
+            startSelect.addEventListener('change', updateButtonState);
+            endSelect.addEventListener('change', updateButtonState);
+
+            startBtn.addEventListener('click', () => startJourney());
+        }
+
+        function fetchTrackingGraph() {
+            fetch('/api/passenger/graph')
+                .then(response => response.json())
+                .then(data => {
+                    trackingStops = data.stops || [];
+                    trackingEdges = data.edges || [];
+                    populateTrackingStops();
+                    renderTrackingMap();
+                })
+                .catch(() => {
+                    const map = document.getElementById('trackingMap');
+                    if (map) {
+                        map.innerHTML = '<p style="padding:20px;color:#64748b;">Unable to load tracking map.</p>';
+                    }
+                });
+        }
+
+        function fetchTrackingBuses() {
+            fetch('/api/passenger/buses')
+                .then(response => response.json())
+                .then(data => {
+                    const busSelect = document.getElementById('trackingBus');
+                    if (!busSelect) return;
+                    busSelect.innerHTML = '<option value="">Select bus (optional)</option>';
+                    (data.buses || []).forEach(bus => {
+                        const option = document.createElement('option');
+                        option.value = bus.bus_number;
+                        option.textContent = `Bus ${bus.bus_number} (${bus.route_name || 'Route'})`;
+                        busSelect.appendChild(option);
+                    });
+                });
+        }
+
+        function populateTrackingStops() {
+            const startSelect = document.getElementById('trackingStart');
+            const endSelect = document.getElementById('trackingEnd');
+            if (!startSelect || !endSelect) return;
+            startSelect.innerHTML = '<option value="">Select start</option>';
+            endSelect.innerHTML = '<option value="">Select destination</option>';
+            trackingStops.forEach(stop => {
+                const option = document.createElement('option');
+                option.value = stop.name;
+                option.textContent = stop.name;
+                startSelect.appendChild(option.cloneNode(true));
+                endSelect.appendChild(option);
+            });
+        }
+
+        function renderTrackingMap() {
+            const map = document.getElementById('trackingMap');
+            const svg = document.getElementById('trackingLines');
+            if (!map || !svg) return;
+
+            map.querySelectorAll('.tracking-marker').forEach(marker => marker.remove());
+            svg.innerHTML = '';
+            trackingPositions = new Map();
+
+            const rect = map.getBoundingClientRect();
+            const width = rect.width || 500;
+            const height = rect.height || 360;
+            const padding = 28;
+
+            trackingStops.forEach((stop, index) => {
+                const angle = (index / trackingStops.length) * Math.PI * 2;
+                const x = width / 2 + Math.cos(angle) * (width / 2 - padding);
+                const y = height / 2 + Math.sin(angle) * (height / 2 - padding);
+                trackingPositions.set(stop.name, { x, y });
+
+                const marker = document.createElement('div');
+                marker.className = 'tracking-marker';
+                marker.style.left = `${x}px`;
+                marker.style.top = `${y}px`;
+                marker.dataset.stop = stop.name;
+                const label = document.createElement('span');
+                label.textContent = stop.name;
+                marker.appendChild(label);
+                map.appendChild(marker);
+            });
+
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            trackingEdges.forEach(edge => {
+                const from = trackingPositions.get(edge.from);
+                const to = trackingPositions.get(edge.to);
+                if (!from || !to) return;
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', from.x);
+                line.setAttribute('y1', from.y);
+                line.setAttribute('x2', to.x);
+                line.setAttribute('y2', to.y);
+                line.setAttribute('class', 'tracking-edge');
+                if (isActiveSegment(edge.from, edge.to)) {
+                    line.classList.add('active');
+                }
+                svg.appendChild(line);
+            });
+
+            updateTrackingMarkers();
+        }
+
+        function updateTrackingMarkers() {
+            const map = document.getElementById('trackingMap');
+            const startStop = document.getElementById('trackingStart')?.value;
+            const endStop = document.getElementById('trackingEnd')?.value;
+            if (!map) return;
+            map.querySelectorAll('.tracking-marker').forEach(marker => {
+                marker.classList.remove('start', 'end');
+                if (marker.dataset.stop === startStop) {
+                    marker.classList.add('start');
+                }
+                if (marker.dataset.stop === endStop) {
+                    marker.classList.add('end');
+                }
+            });
+        }
+
+        function isActiveSegment(from, to) {
+            return activeSegments.some(segment =>
+                (segment.from === from && segment.to === to) ||
+                (segment.from === to && segment.to === from)
+            );
+        }
+
+        function startJourney() {
+            const startStop = document.getElementById('trackingStart')?.value;
+            const endStop = document.getElementById('trackingEnd')?.value;
+            const busNumber = document.getElementById('trackingBus')?.value;
+            if (!startStop || !endStop) return;
+
+            fetch('/api/passenger/journey/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    start_stop: startStop,
+                    end_stop: endStop,
+                    bus_number: busNumber
+                })
+            })
+            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) {
+                    throw new Error(data.error || 'Unable to start journey');
+                }
+                const journey = data.journey;
+                journeyId = journey.journey_id;
+                activeSegments = journey.segments || [];
+                document.getElementById('journeyRoute').textContent = `Route: ${journey.start_stop} → ${journey.end_stop}`;
+                document.getElementById('journeyStatus').textContent = 'In Transit';
+                updateTrackingMarkers();
+                renderTrackingMap();
+                startJourneyPolling();
+            })
+            .catch(error => {
+                document.getElementById('journeyStatus').textContent = error.message;
+            });
+        }
+
+        function startJourneyPolling() {
+            if (journeyPoller) {
+                clearInterval(journeyPoller);
+            }
+            fetchJourneyStatus();
+            journeyPoller = setInterval(fetchJourneyStatus, 3000);
+        }
+
+        function fetchJourneyStatus() {
+            if (!journeyId) return;
+            fetch(`/api/passenger/journey/status?journey_id=${journeyId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    updateJourneyUI(data);
+                })
+                .catch(error => {
+                    document.getElementById('journeyStatus').textContent = error.message;
+                });
+        }
+
+        function updateJourneyUI(data) {
+            const statusLabel = data.status === 'approaching_destination' ? 'Approaching Destination' : 'In Transit';
+            document.getElementById('journeyStatus').textContent = statusLabel;
+            document.getElementById('remainingDistance').textContent = `${data.remaining_distance.toFixed(2)} km`;
+            document.getElementById('remainingTime').textContent = `${Math.ceil(data.remaining_minutes)} min`;
+            const segment = data.position || {};
+            document.getElementById('currentSegment').textContent = segment.from && segment.to
+                ? `${segment.from} → ${segment.to}`
+                : '--';
+            moveBusDot(segment);
+        }
+
+        function moveBusDot(segment) {
+            const busDot = document.getElementById('busDot');
+            if (!busDot || !segment) return;
+            const from = trackingPositions.get(segment.from);
+            const to = trackingPositions.get(segment.to);
+            if (!from || !to) return;
+            const progress = segment.segment_progress || 0;
+            const x = from.x + (to.x - from.x) * progress;
+            const y = from.y + (to.y - from.y) * progress;
+            busDot.style.left = `${x}px`;
+            busDot.style.top = `${y}px`;
+            busDot.style.display = 'flex';
+        }
+
+        window.addEventListener('resize', () => {
+            if (trackingStops.length) {
+                renderTrackingMap();
+            }
+        });
         
         function showBookTicket() {
-            alert('Book Ticket feature coming soon!');
+            window.location.href = '{{ url_for("passenger_book_ticket_page") }}';
         }
         
         // Keyboard shortcuts
