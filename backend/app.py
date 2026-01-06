@@ -1227,6 +1227,40 @@ def passenger_dashboard():
     
     return render_template('passenger_dashboard.html', user=user_data)
 
+
+@app.route('/passenger/profile')
+def passenger_profile():
+    if not session.get('logged_in'):
+        flash('Please login first!', 'error')
+        return redirect(url_for('login'))
+    if session.get('user_type') != 'passenger':
+        flash('Passenger access only!', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+    user_data = {
+        'username': session.get('username'),
+        'email': session.get('email'),
+        'phone': session.get('phone'),
+        'full_name': session.get('full_name', 'Passenger'),
+        'login_time': session.get('login_time'),
+    }
+    return render_template('passenger_profile.html', user=user_data)
+
+
+@app.route('/passenger/travel_history')
+def passenger_travel_history():
+    if not session.get('logged_in'):
+        flash('Please login first!', 'error')
+        return redirect(url_for('login'))
+    if session.get('user_type') != 'passenger':
+        flash('Passenger access only!', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+    passenger_id = session.get('user_id', '')
+    history = _travel_history_read().get("history", [])
+    passenger_history = [h for h in history if h.get("passenger_id") == passenger_id]
+    return render_template('passenger_travel_history.html', user=session, history=passenger_history)
+
 @app.route('/logout')
 def logout():
     """Logout route"""

@@ -659,19 +659,19 @@
                 <i class="fas fa-ticket-alt"></i>
                 <span>My Tickets</span>
             </a>
-            <a href="#" class="nav-item" id="findRouteNav">
+            <a href="{{ url_for('passenger_plan_journey') }}" class="nav-item" id="findRouteNav">
                 <i class="fas fa-route"></i>
                 <span>Find Route</span>
             </a>
-            <a href="#" class="nav-item" id="liveTrackingNav">
+            <a href="{{ url_for('passenger_live_tracking') }}" class="nav-item" id="liveTrackingNav">
                 <i class="fas fa-bus"></i>
                 <span>Live Tracking</span>
             </a>
-            <a href="#" class="nav-item" id="historyNav">
+            <a href="{{ url_for('passenger_travel_history') }}" class="nav-item" id="historyNav">
                 <i class="fas fa-history"></i>
                 <span>Travel History</span>
             </a>
-            <a href="#" class="nav-item" id="profileNav">
+            <a href="{{ url_for('passenger_profile') }}" class="nav-item" id="profileNav">
                 <i class="fas fa-user-cog"></i>
                 <span>Profile</span>
             </a>
@@ -1059,7 +1059,7 @@
             if (bookTicketBtn) {
                 bookTicketBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    showBookTicket();
+                    window.location.href = '{{ url_for("passenger_book_ticket_page") }}';
                 });
             }
             
@@ -1089,7 +1089,7 @@
             if (planJourneyBtn) {
                 planJourneyBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    alert('Plan Journey feature coming soon!');
+                    window.location.href = '{{ url_for("passenger_plan_journey") }}';
                 });
             }
             
