@@ -26,7 +26,6 @@ config_file = os.path.join(data_dir, 'config.json')
 
 sim_file = os.path.join(data_dir, 'sim_distances.json')
 journeys_file = os.path.join(data_dir, 'journeys.json')
-travel_history_file = os.path.join(data_dir, 'travel_history.json')
 
 
 # Ensure data directory exists
@@ -86,43 +85,6 @@ def _journey_write(data):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
     os.replace(tmp, journeys_file)
-
-def _travel_history_init():
-    if not os.path.exists(travel_history_file):
-        os.makedirs(os.path.dirname(travel_history_file), exist_ok=True)
-        with open(travel_history_file, "w", encoding="utf-8") as f:
-            json.dump({"history": []}, f, indent=2)
-
-def _travel_history_read():
-    _travel_history_init()
-    return _read_json_file(travel_history_file, {"history": []})
-
-def _travel_history_write(data):
-    os.makedirs(os.path.dirname(travel_history_file), exist_ok=True)
-    tmp = travel_history_file + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-    os.replace(tmp, travel_history_file)
-
-def _record_travel_history(ticket, bus):
-    data = _travel_history_read()
-    history = data.get("history", [])
-    history.insert(0, {
-        "ticket_id": ticket.get("ticket_id"),
-        "passenger_id": ticket.get("passenger_id"),
-        "passenger_name": ticket.get("passenger_name"),
-        "from_stop": ticket.get("from_stop"),
-        "to_stop": ticket.get("to_stop"),
-        "path": ticket.get("path", []),
-        "distance": ticket.get("distance"),
-        "fare": ticket.get("fare"),
-        "bus_number": ticket.get("bus_number"),
-        "bus_type": bus.get("type") if bus else None,
-        "route_name": bus.get("route_name") if bus else None,
-        "created_at": ticket.get("created_at"),
-    })
-    data["history"] = history
-    _travel_history_write(data)
 
 def _journey_total_distance(segments):
     return sum(float(segment.get("distance") or 0) for segment in segments)
@@ -1344,6 +1306,74 @@ def passenger_travel_history():
     passenger_history = [h for h in history if h.get("passenger_id") == passenger_id]
     return render_template('passenger_travel_history.html', user=session, history=passenger_history)
 
+
+@app.route('/passenger/profile')
+def passenger_profile():
+    if not session.get('logged_in'):
+        flash('Please login first!', 'error')
+        return redirect(url_for('login'))
+    if session.get('user_type') != 'passenger':
+        flash('Passenger access only!', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+    user_data = {
+        'username': session.get('username'),
+        'email': session.get('email'),
+        'phone': session.get('phone'),
+        'full_name': session.get('full_name', 'Passenger'),
+        'login_time': session.get('login_time'),
+    }
+    return render_template('passenger_profile.html', user=user_data)
+
+
+@app.route('/passenger/travel_history')
+def passenger_travel_history():
+    if not session.get('logged_in'):
+        flash('Please login first!', 'error')
+        return redirect(url_for('login'))
+    if session.get('user_type') != 'passenger':
+        flash('Passenger access only!', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+    passenger_id = session.get('user_id', '')
+    history = _travel_history_read().get("history", [])
+    passenger_history = [h for h in history if h.get("passenger_id") == passenger_id]
+    return render_template('passenger_travel_history.html', user=session, history=passenger_history)
+
+
+@app.route('/passenger/profile')
+def passenger_profile():
+    if not session.get('logged_in'):
+        flash('Please login first!', 'error')
+        return redirect(url_for('login'))
+    if session.get('user_type') != 'passenger':
+        flash('Passenger access only!', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+    user_data = {
+        'username': session.get('username'),
+        'email': session.get('email'),
+        'phone': session.get('phone'),
+        'full_name': session.get('full_name', 'Passenger'),
+        'login_time': session.get('login_time'),
+    }
+    return render_template('passenger_profile.html', user=user_data)
+
+
+@app.route('/passenger/travel_history')
+def passenger_travel_history():
+    if not session.get('logged_in'):
+        flash('Please login first!', 'error')
+        return redirect(url_for('login'))
+    if session.get('user_type') != 'passenger':
+        flash('Passenger access only!', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+    passenger_id = session.get('user_id', '')
+    history = _travel_history_read().get("history", [])
+    passenger_history = [h for h in history if h.get("passenger_id") == passenger_id]
+    return render_template('passenger_travel_history.html', user=session, history=passenger_history)
+
 @app.route('/logout')
 def logout():
     """Logout route"""
@@ -2345,7 +2375,6 @@ def passenger_tickets_api():
         eta=eta,
     )
     _update_bus_passengers(bus_number, 1)
-    _record_travel_history(ticket, bus)
     return jsonify({'ticket': ticket}), 201
 
 
