@@ -348,6 +348,69 @@
             margin-top: 16px;
         }
 
+        .routes-panel {
+            margin-top: 18px;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .routes-panel h4 {
+            font-size: 0.95rem;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+
+        .routes-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .route-card {
+            background: white;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+
+        .route-card strong {
+            color: #0f766e;
+        }
+
+        .route-card .route-meta {
+            margin-top: 6px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .route-pill {
+            background: #e2e8f0;
+            color: #1e293b;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .route-select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5f5;
+            font-size: 0.95rem;
+            margin-top: 6px;
+        }
+
+        .route-stops {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
         .ticket-form .field {
             background: #f8fafc;
             border-radius: 10px;
@@ -602,6 +665,11 @@
                             </button>
                         </div>
                     </div>
+
+                    <div class="routes-panel">
+                        <h4>Available Routes</h4>
+                        <div class="routes-list" id="routesList"></div>
+                    </div>
                 </div>
 
                 <div class="tickets-card">
@@ -626,6 +694,7 @@
         const createTicketBtn = document.getElementById('createTicketBtn');
         const resetSelectionBtn = document.getElementById('resetSelectionBtn');
         const ticketsList = document.getElementById('ticketsList');
+        const routesList = document.getElementById('routesList');
         const logoutButton = document.getElementById('logoutButton');
 
         let stops = [];
@@ -764,6 +833,12 @@
                 });
         }
 
+        function scheduleMapRender() {
+            requestAnimationFrame(() => {
+                renderMap();
+            });
+        }
+
         function renderMap() {
             mapContainer.querySelectorAll('.map-marker').forEach(marker => marker.remove());
             mapLines.innerHTML = '';
@@ -778,8 +853,8 @@
             }
 
             const rect = mapContainer.getBoundingClientRect();
-            const width = rect.width || 500;
-            const height = rect.height || 360;
+            const width = rect.width || mapContainer.clientWidth || 600;
+            const height = rect.height || mapContainer.clientHeight || 400;
             const padding = 30;
 
             const hasCoords = stops.some(stop => stop.latitude !== null && stop.longitude !== null);
@@ -945,6 +1020,174 @@
             estimatedFare.textContent = `Estimated fare: Rs. ${fare}`;
         }
 
+        function isActiveEdge(from, to) {
+            return activeSegments.some(segment =>
+                (segment.from === from && segment.to === to) ||
+                (segment.from === to && segment.to === from)
+            );
+        }
+
+        function showToast(message) {
+            if (!mapToast) {
+                return;
+            }
+            mapToast.textContent = message;
+            mapToast.classList.add('show');
+            setTimeout(() => mapToast.classList.remove('show'), 2400);
+        }
+
+        function formatTrafficLabel(level) {
+            if (level === 'high') return 'High traffic';
+            if (level === 'medium') return 'Medium traffic';
+            return 'Low traffic';
+        }
+
+        function updateRouteOverview() {
+            if (!activeRouteName) {
+                routeOverview.textContent = 'Waiting for selections';
+                routeSummary.innerHTML = '';
+                return;
+            }
+            const trafficLabel = formatTrafficLabel(activeTraffic);
+            const busLabel = activeBusCount ? `${activeBusCount} buses allocated` : 'No buses allocated yet';
+            routeOverview.textContent = `${activeRouteName} • ${trafficLabel} • ${busLabel}`;
+            routeSummary.innerHTML = `
+                <span class="route-chip">${trafficLabel}</span>
+                <span class="route-chip">${busLabel}</span>
+                <span class="route-chip">${currentDistance ? currentDistance.toFixed(1) : '--'} km</span>
+            `;
+        }
+
+        function updateAvailableBuses() {
+            busSelect.innerHTML = '<option value="">Select a bus</option>';
+            const filtered = activeRouteId
+                ? buses.filter(bus => String(bus.route_id || '') === String(activeRouteId))
+                : activeRouteFilter
+                    ? buses.filter(bus => (bus.route_name || '') === activeRouteFilter)
+                    : buses;
+            if (!filtered.length) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = activeRouteId ? 'No buses allocated to this route' : 'No buses available';
+                option.disabled = true;
+                busSelect.appendChild(option);
+            }
+            filtered.forEach(bus => {
+                const option = document.createElement('option');
+                option.value = bus.bus_number;
+                const isFull = (bus.capacity || 0) && (bus.current_passengers || 0) >= bus.capacity;
+                option.disabled = isFull;
+                option.textContent = `Bus ${bus.bus_number} (${bus.route_name || 'Route'})${isFull ? ' • Full' : ''}`;
+                busSelect.appendChild(option);
+            });
+            if (busSelect.value && !filtered.some(bus => String(bus.bus_number) === busSelect.value)) {
+                busSelect.value = '';
+            }
+            if (!busSelect.value) {
+                busMeta.textContent = 'Arrival time will show here.';
+            }
+            updateSelectionUI();
+            updateFareEstimate();
+        }
+
+        function buildRouteSummaries() {
+            const summaryMap = new Map();
+            edges.forEach(edge => {
+                const name = edge.route_name || 'Route';
+                if (!summaryMap.has(name)) {
+                    summaryMap.set(name, {
+                        name,
+                        distance: 0,
+                        stops: new Set(),
+                        busCount: routeNameCounts[name] || 0,
+                        traffic: edge.traffic || 'low',
+                    });
+                }
+                const summary = summaryMap.get(name);
+                summary.distance += Number(edge.weight || edge.distance || 0);
+                summary.stops.add(edge.from);
+                summary.stops.add(edge.to);
+                if (edge.traffic === 'high') {
+                    summary.traffic = 'high';
+                } else if (edge.traffic === 'medium' && summary.traffic !== 'high') {
+                    summary.traffic = 'medium';
+                }
+            });
+            routeSummaries = Array.from(summaryMap.values()).map(summary => ({
+                ...summary,
+                stops: Array.from(summary.stops),
+            }));
+        }
+
+        function renderRouteOptions() {
+            if (!routeSelect) return;
+            routeSelect.innerHTML = '<option value="">Show all routes</option>';
+            routeSummaries.forEach(summary => {
+                const option = document.createElement('option');
+                option.value = summary.name;
+                option.textContent = `${summary.name} (${summary.stops.length} stops)`;
+                routeSelect.appendChild(option);
+            });
+            updateRouteStops();
+        }
+
+        function updateRouteStops() {
+            if (!routeStops) return;
+            if (!activeRouteFilter) {
+                routeStops.textContent = 'Stops: --';
+                return;
+            }
+            const summary = routeSummaries.find(item => item.name === activeRouteFilter);
+            routeStops.textContent = summary
+                ? `Stops: ${summary.stops.join(' → ')}`
+                : 'Stops: --';
+        }
+
+        function renderRoutesList() {
+            if (!routesList) return;
+            routesList.innerHTML = '';
+            if (!routeSummaries.length) {
+                routesList.innerHTML = '<div class="route-card">No routes available.</div>';
+                return;
+            }
+            routeSummaries.forEach(summary => {
+                const card = document.createElement('div');
+                card.className = 'route-card';
+                card.innerHTML = `
+                    <strong>${summary.name}</strong>
+                    <div class="route-meta">
+                        <span class="route-pill">${summary.stops.length} stops</span>
+                        <span class="route-pill">${summary.distance.toFixed(1)} km</span>
+                        <span class="route-pill">${summary.busCount} buses</span>
+                        <span class="route-pill">${formatTrafficLabel(summary.traffic)}</span>
+                    </div>
+                `;
+                routesList.appendChild(card);
+            });
+        }
+
+        function fareRateForBus(bus) {
+            if (bus && bus.type === 'air_conditioned') {
+                return 3.5;
+            }
+            return 2.5;
+        }
+
+        function updateFareEstimate() {
+            if (!currentDistance) {
+                estimatedFare.textContent = 'Select stops to calculate fare';
+                return;
+            }
+            const bus = buses.find(item => String(item.bus_number) === busSelect.value);
+            if (!bus) {
+                estimatedFare.textContent = 'Select a bus to calculate fare';
+                return;
+            }
+            const rate = fareRateForBus(bus);
+            const fare = Math.max(currentDistance * rate, 10).toFixed(2);
+            estimatedFare.textContent = `Estimated fare: Rs. ${fare}`;
+        }
+
         function fetchRoute() {
             fetch('/api/passenger/route', {
                 method: 'POST',
@@ -1039,9 +1282,17 @@
 
         window.addEventListener('resize', () => {
             if (stops.length) {
-                renderMap();
+                scheduleMapRender();
             }
         });
+
+        const mapObserver = new ResizeObserver(() => {
+            if (stops.length) {
+                scheduleMapRender();
+            }
+        });
+
+        mapObserver.observe(mapContainer);
 
         fetchStops();
         loadBuses();
