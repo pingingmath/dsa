@@ -231,7 +231,7 @@
         
         function bookThisRoute(fromStop, toStop) {
             // Redirect to booking page with pre-selected stops
-            window.location.href = `{{ url_for('passenger_book_ticket') }}?from=${encodeURIComponent(fromStop)}&to=${encodeURIComponent(toStop)}`;
+            window.location.href = `{{ url_for('passenger_book_ticket_page') }}?from=${encodeURIComponent(fromStop)}&to=${encodeURIComponent(toStop)}`;
         }
     </script>
 </body>
