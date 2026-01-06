@@ -671,7 +671,7 @@
                 <i class="fas fa-history"></i>
                 <span>Travel History</span>
             </a>
-            <a href="{{ url_for('passenger_profile') }}" class="nav-item" id="profileNav">
+            <a href="{{ url_for('passenger_profile_page') }}" class="nav-item" id="profileNav">
                 <i class="fas fa-user-cog"></i>
                 <span>Profile</span>
             </a>
@@ -739,11 +739,11 @@
                 
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
+                        <i class="fas fa-history"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="currentTime">Now</h3>
-                        <p>Current Time</p>
+                        <h3 id="recentTrips">0</h3>
+                        <p>Recent Trips</p>
                     </div>
                 </div>
             </div>
@@ -861,6 +861,49 @@
                     </a>
                 </div>
             </div>
+
+            <div class="quick-actions">
+                <h2 class="section-title">
+                    <i class="fas fa-heart"></i> Favorites & Recommendations
+                </h2>
+                <div class="actions-grid">
+                    <div class="action-btn" id="favoriteRouteCard">
+                        <i class="fas fa-route"></i>
+                        <span>Favorite Route</span>
+                        <small id="favoriteRouteText">Add your top route</small>
+                    </div>
+                    <div class="action-btn" id="popularRouteCard">
+                        <i class="fas fa-fire"></i>
+                        <span>Popular Today</span>
+                        <small id="popularRouteText">Loading...</small>
+                    </div>
+                </div>
+                <div class="actions-grid" style="margin-top: 20px;">
+                    <div class="action-btn" id="favoriteStopCard">
+                        <i class="fas fa-map-pin"></i>
+                        <span>Favorite Stop</span>
+                        <small id="favoriteStopText">Add your go-to stop</small>
+                    </div>
+                    <div class="action-btn" id="recentRouteCard">
+                        <i class="fas fa-redo"></i>
+                        <span>Book Again</span>
+                        <small id="bookAgainText">Pick a recent trip</small>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; display: grid; gap: 12px;">
+                    <div>
+                        <label for="favoriteRouteInput"><strong>Add Favorite Route</strong></label>
+                        <input id="favoriteRouteInput" type="text" placeholder="e.g. City Center → Campus" style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1;">
+                        <button class="feature-btn" id="addFavoriteRouteBtn" style="margin-top:8px;">Save Route</button>
+                    </div>
+                    <div>
+                        <label for="favoriteStopInput"><strong>Add Favorite Stop</strong></label>
+                        <input id="favoriteStopInput" type="text" placeholder="e.g. Main Gate" style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1;">
+                        <button class="feature-btn" id="addFavoriteStopBtn" style="margin-top:8px;">Save Stop</button>
+                    </div>
+                    <div id="favoriteList" style="display:grid; gap:8px;"></div>
+                </div>
+            </div>
             
             <!-- Recent Activity -->
             <div class="recent-activity">
@@ -868,40 +911,7 @@
                     <i class="fas fa-clipboard-list"></i> Recent Activity
                 </h2>
                 
-                <div class="activity-list" id="activityList">
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-user-check"></i>
-                        </div>
-                        <div class="activity-content">
-                            <h4>Account Login</h4>
-                            <p>Successfully logged into your account</p>
-                        </div>
-                        <div class="activity-time" id="loginTime">Just now</div>
-                    </div>
-                    
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-info-circle"></i>
-                        </div>
-                        <div class="activity-content">
-                            <h4>Welcome Message</h4>
-                            <p>Welcome to Intelligent Transport System</p>
-                        </div>
-                        <div class="activity-time">Today</div>
-                    </div>
-                    
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <div class="activity-content">
-                            <h4>New Features</h4>
-                            <p>Explore our new DSA-powered features</p>
-                        </div>
-                        <div class="activity-time">Today</div>
-                    </div>
-                </div>
+                <div class="activity-list" id="activityList"></div>
             </div>
         </div>
     </div>
@@ -910,12 +920,6 @@
         // Initialize dashboard when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Passenger Dashboard loaded');
-            
-            // Update current time immediately
-            updateCurrentTime();
-            
-            // Setup time updater
-            setupTimeUpdater();
             
             // Setup logout button
             setupLogoutButton();
@@ -934,30 +938,12 @@
 
             // Setup live tracking
             setupLiveTracking();
+
+            // Load stats and activity
+            loadPassengerStats();
+            loadRecentActivity();
+            setupFavorites();
         });
-        
-        // Update current time
-        function updateCurrentTime() {
-            try {
-                const now = new Date();
-                const timeString = now.toLocaleTimeString();
-                const currentTimeElement = document.getElementById('currentTime');
-                if (currentTimeElement) {
-                    currentTimeElement.textContent = timeString;
-                }
-            } catch (error) {
-                console.error('Error updating time:', error);
-            }
-        }
-        
-        // Setup time updater (runs every second)
-        function setupTimeUpdater() {
-            // Update immediately
-            updateCurrentTime();
-            
-            // Update every second
-            setInterval(updateCurrentTime, 1000);
-        }
         
         // Setup logout button
         function setupLogoutButton() {
@@ -1142,13 +1128,6 @@
                     welcomeMessage.textContent = `${greeting}, {{ user.full_name }}!`;
                 }
                 
-                // Update login time in activity list
-                const loginTimeElement = document.getElementById('loginTime');
-                if (loginTimeElement) {
-                    const timeString = now.toLocaleTimeString();
-                    loginTimeElement.textContent = timeString;
-                }
-                
                 // Update user avatar with first letter
                 const userAvatar = document.getElementById('userAvatar');
                 if (userAvatar && !userAvatar.textContent.trim()) {
@@ -1167,23 +1146,23 @@
         }
         
         function showMyTickets() {
-            alert('My Tickets feature coming soon!');
+            window.location.href = '{{ url_for("passenger_my_tickets") }}';
         }
         
         function showFindRoute() {
-            alert('Find Route feature coming soon!');
+            window.location.href = '{{ url_for("passenger_plan_journey") }}';
         }
         
         function showLiveTracking() {
-            alert('Live Tracking feature coming soon!');
+            window.location.href = '{{ url_for("passenger_live_tracking") }}';
         }
         
         function showTravelHistory() {
-            alert('Travel History feature coming soon!');
+            window.location.href = '{{ url_for("passenger_travel_history") }}';
         }
         
         function showProfile() {
-            alert('Profile feature coming soon!');
+            window.location.href = '{{ url_for("passenger_profile_page") }}';
         }
 
         // Live tracking setup
@@ -1193,6 +1172,7 @@
         let journeyId = null;
         let journeyPoller = null;
         let activeSegments = [];
+        let lastEtaNotificationAt = null;
 
         function setupLiveTracking() {
             fetchTrackingGraph();
@@ -1407,6 +1387,14 @@
                 ? `${segment.from} → ${segment.to}`
                 : '--';
             moveBusDot(segment);
+
+            if (data.remaining_minutes <= 5 && statusLabel === 'In Transit') {
+                const now = Date.now();
+                if (!lastEtaNotificationAt || now - lastEtaNotificationAt > 120000) {
+                    showNotification('Your bus is arriving in less than 5 minutes!', 'success');
+                    lastEtaNotificationAt = now;
+                }
+            }
         }
 
         function moveBusDot(segment) {
@@ -1431,6 +1419,206 @@
         
         function showBookTicket() {
             alert('Book Ticket feature coming soon!');
+        }
+
+        function loadPassengerStats() {
+            fetch('/api/passenger/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data || data.error) {
+                        throw new Error(data.error || 'Unable to load stats');
+                    }
+                    const stats = data.stats || {};
+                    const ticketCount = document.getElementById('ticketCount');
+                    if (ticketCount) {
+                        ticketCount.textContent = stats.active_tickets ?? stats.total_tickets ?? 0;
+                    }
+                    const recentTrips = document.getElementById('recentTrips');
+                    if (recentTrips) {
+                        recentTrips.textContent = stats.total_tickets ?? 0;
+                    }
+                    const favoriteRouteText = document.getElementById('favoriteRouteText');
+                    if (favoriteRouteText) {
+                        favoriteRouteText.textContent = stats.favorite_route || 'Add your top route';
+                    }
+                })
+                .catch(error => console.error('Stats error:', error));
+        }
+
+        function loadRecentActivity() {
+            const list = document.getElementById('activityList');
+            if (!list) return;
+            list.innerHTML = '';
+
+            const addItem = (title, detail, time, icon = 'info-circle', actions = '') => {
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.innerHTML = `
+                    <div class="activity-icon">
+                        <i class="fas fa-${icon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h4>${title}</h4>
+                        <p>${detail}</p>
+                        ${actions}
+                    </div>
+                    <div class="activity-time">${time}</div>
+                `;
+                list.appendChild(item);
+            };
+
+            const now = new Date();
+            addItem('Account Login', 'Successfully logged into your account', now.toLocaleTimeString(), 'user-check');
+
+            fetch('/api/passenger/tickets')
+                .then(response => response.json())
+                .then(data => {
+                    const tickets = data.tickets || [];
+                    if (!tickets.length) {
+                        addItem('No Trips Yet', 'Book your first ticket to see activity here.', 'Today', 'ticket-alt');
+                        return;
+                    }
+
+                    const sorted = [...tickets].sort((a, b) => {
+                        const aDate = new Date(a.created_at || 0);
+                        const bDate = new Date(b.created_at || 0);
+                        return bDate - aDate;
+                    });
+
+                    const recent = sorted.slice(0, 3);
+                    recent.forEach(ticket => {
+                        const routeLabel = `${ticket.from_stop} → ${ticket.to_stop}`;
+                        const created = ticket.created_at ? new Date(ticket.created_at) : now;
+                        const timeLabel = created.toLocaleDateString();
+                        const action = `
+                            <div style="margin-top:8px;">
+                                <a class="feature-btn" href="{{ url_for('passenger_book_ticket_page') }}?from=${encodeURIComponent(ticket.from_stop)}&to=${encodeURIComponent(ticket.to_stop)}">Book Again</a>
+                            </div>
+                        `;
+                        addItem('Trip Completed', routeLabel, timeLabel, 'route', action);
+                    });
+
+                    const routeNames = sorted.map(ticket => ticket.route_name).filter(Boolean);
+                    const popularRoute = routeNames.sort((a, b) =>
+                        routeNames.filter(name => name === b).length -
+                        routeNames.filter(name => name === a).length
+                    )[0];
+                    const popularRouteText = document.getElementById('popularRouteText');
+                    if (popularRouteText) {
+                        popularRouteText.textContent = popularRoute || 'Explore new routes';
+                    }
+                    const routeCount = document.getElementById('routeCount');
+                    if (routeCount) {
+                        const uniqueRoutes = new Set(routeNames);
+                        routeCount.textContent = uniqueRoutes.size;
+                    }
+                    const bookAgainText = document.getElementById('bookAgainText');
+                    if (bookAgainText && recent[0]) {
+                        bookAgainText.textContent = `${recent[0].from_stop} → ${recent[0].to_stop}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Activity error:', error);
+                    addItem('Unable to load trips', 'Please try again later.', 'Now', 'exclamation-circle');
+                });
+        }
+
+        function setupFavorites() {
+            const routeBtn = document.getElementById('addFavoriteRouteBtn');
+            const stopBtn = document.getElementById('addFavoriteStopBtn');
+            if (routeBtn) {
+                routeBtn.addEventListener('click', () => addFavorite('route'));
+            }
+            if (stopBtn) {
+                stopBtn.addEventListener('click', () => addFavorite('stop'));
+            }
+            loadFavorites();
+        }
+
+        function loadFavorites() {
+            fetch('/api/passenger/favorites')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    renderFavorites(data.favorites || {});
+                })
+                .catch(error => console.error('Favorites error:', error));
+        }
+
+        function renderFavorites(favorites) {
+            const list = document.getElementById('favoriteList');
+            if (!list) return;
+            list.innerHTML = '';
+            const routes = favorites.routes || [];
+            const stops = favorites.stops || [];
+
+            if (!routes.length && !stops.length) {
+                list.innerHTML = '<div style="color:#64748b;">No favorites yet. Add one above!</div>';
+                return;
+            }
+
+            const addChip = (label, type) => {
+                const chip = document.createElement('div');
+                chip.style.cssText = 'display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;padding:8px 12px;border-radius:999px;';
+                chip.innerHTML = `
+                    <span>${label}</span>
+                    <button data-type="${type}" data-value="${label}" style="border:none;background:#ef4444;color:#fff;border-radius:999px;padding:2px 8px;cursor:pointer;">×</button>
+                `;
+                list.appendChild(chip);
+            };
+
+            routes.forEach(route => addChip(route, 'route'));
+            stops.forEach(stop => addChip(stop, 'stop'));
+
+            list.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const type = button.dataset.type;
+                    const value = button.dataset.value;
+                    updateFavorite(type, value, 'remove');
+                });
+            });
+
+            const favoriteRouteText = document.getElementById('favoriteRouteText');
+            if (favoriteRouteText) {
+                favoriteRouteText.textContent = routes[0] || 'Add your top route';
+            }
+            const favoriteStopText = document.getElementById('favoriteStopText');
+            if (favoriteStopText) {
+                favoriteStopText.textContent = stops[0] || 'Add your go-to stop';
+            }
+        }
+
+        function addFavorite(type) {
+            const input = document.getElementById(type === 'route' ? 'favoriteRouteInput' : 'favoriteStopInput');
+            if (!input) return;
+            const value = input.value.trim();
+            if (!value) return;
+            updateFavorite(type, value, 'add');
+            input.value = '';
+        }
+
+        function updateFavorite(type, value, action) {
+            fetch('/api/passenger/favorites', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: `${action}_${type}`,
+                    value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                renderFavorites(data.favorites || {});
+            })
+            .catch(error => {
+                console.error('Favorite update error:', error);
+                showNotification('Unable to update favorites', 'error');
+            });
         }
         
         // Keyboard shortcuts

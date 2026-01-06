@@ -26,6 +26,7 @@ config_file = os.path.join(data_dir, 'config.json')
 
 sim_file = os.path.join(data_dir, 'sim_distances.json')
 journeys_file = os.path.join(data_dir, 'journeys.json')
+favorites_file = os.path.join(data_dir, 'favorites.json')
 
 
 # Ensure data directory exists
@@ -85,6 +86,23 @@ def _journey_write(data):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
     os.replace(tmp, journeys_file)
+
+def _favorites_init_file():
+    if not os.path.exists(favorites_file):
+        os.makedirs(os.path.dirname(favorites_file), exist_ok=True)
+        with open(favorites_file, "w", encoding="utf-8") as f:
+            json.dump({"users": {}}, f, indent=2)
+
+def _favorites_read():
+    _favorites_init_file()
+    return _read_json_file(favorites_file, {"users": {}})
+
+def _favorites_write(data):
+    os.makedirs(os.path.dirname(favorites_file), exist_ok=True)
+    tmp = favorites_file + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, favorites_file)
 
 def _journey_total_distance(segments):
     return sum(float(segment.get("distance") or 0) for segment in segments)
@@ -2322,6 +2340,46 @@ def passenger_ticket_detail(ticket_id: str):
     if not ticket:
         return jsonify({'error': 'Ticket not found'}), 404
     return jsonify({'ticket': ticket})
+
+@app.route('/api/passenger/favorites', methods=['GET', 'POST'])
+def passenger_favorites_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+    if session.get('user_type') != 'passenger':
+        return jsonify({'error': 'Passenger access only'}), 403
+
+    data = _favorites_read()
+    users = data.setdefault('users', {})
+    passenger_id = session.get('user_id', '')
+    favorites = users.get(passenger_id, {'routes': [], 'stops': []})
+
+    if request.method == 'GET':
+        return jsonify({'favorites': favorites})
+
+    payload = request.get_json(force=True, silent=True) or {}
+    routes = payload.get('routes')
+    stops = payload.get('stops')
+
+    if routes is not None:
+        favorites['routes'] = list(dict.fromkeys([r for r in routes if r]))
+    if stops is not None:
+        favorites['stops'] = list(dict.fromkeys([s for s in stops if s]))
+
+    action = (payload.get('action') or '').strip().lower()
+    value = (payload.get('value') or '').strip()
+    if action and value:
+        if action == 'add_route' and value not in favorites['routes']:
+            favorites['routes'].append(value)
+        elif action == 'remove_route':
+            favorites['routes'] = [route for route in favorites['routes'] if route != value]
+        elif action == 'add_stop' and value not in favorites['stops']:
+            favorites['stops'].append(value)
+        elif action == 'remove_stop':
+            favorites['stops'] = [stop for stop in favorites['stops'] if stop != value]
+
+    users[passenger_id] = favorites
+    _favorites_write(data)
+    return jsonify({'favorites': favorites})
 
 @app.route('/passenger/book_ticket')
 def passenger_book_ticket_page():
