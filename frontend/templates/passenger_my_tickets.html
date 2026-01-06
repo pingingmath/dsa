@@ -577,7 +577,6 @@
                         <div class="field">
                             <div class="label">Route Overview</div>
                             <div id="routeOverview">Waiting for selections</div>
-                            <div class="route-summary" id="routeSummary"></div>
                         </div>
                         <div class="field">
                             <div class="label">Computed Route</div>
@@ -618,7 +617,6 @@
         const selectedStart = document.getElementById('selectedStart');
         const selectedEnd = document.getElementById('selectedEnd');
         const routeOverview = document.getElementById('routeOverview');
-        const routeSummary = document.getElementById('routeSummary');
         const selectedRoute = document.getElementById('selectedRoute');
         const busSelect = document.getElementById('busSelect');
         const busMeta = document.getElementById('busMeta');
@@ -666,7 +664,6 @@
             busSelect.value = '';
             updateSelectionUI();
             routeOverview.textContent = 'Waiting for selections';
-            routeSummary.innerHTML = '';
             selectedRoute.textContent = 'Waiting for selections';
             estimatedFare.textContent = 'Select stops to calculate fare';
             updateMarkers();
@@ -703,7 +700,6 @@
                 activeSegments = [];
                 updateSelectionUI();
                 routeOverview.textContent = 'Ticket created successfully.';
-                routeSummary.innerHTML = '';
                 selectedRoute.textContent = 'Ticket created successfully.';
                 estimatedFare.textContent = 'Select stops to calculate fare';
                 loadTickets();
@@ -852,11 +848,6 @@
                 if (isActiveEdge(edge.from, edge.to)) {
                     line.classList.add('active-route');
                 }
-                const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-                const busCount = edge.bus_count || 0;
-                const traffic = edge.traffic || 'low';
-                title.textContent = `Buses: ${busCount} • Traffic: ${traffic} • Distance: ${edge.weight || edge.distance || 0} km`;
-                line.appendChild(title);
                 mapLines.appendChild(line);
 
                 if (isActiveEdge(edge.from, edge.to)) {
@@ -895,17 +886,11 @@
         function updateRouteOverview() {
             if (!activeRouteName) {
                 routeOverview.textContent = 'Waiting for selections';
-                routeSummary.innerHTML = '';
                 return;
             }
             const trafficLabel = formatTrafficLabel(activeTraffic);
             const busLabel = activeBusCount ? `${activeBusCount} buses allocated` : 'No buses allocated yet';
             routeOverview.textContent = `${activeRouteName} • ${trafficLabel} • ${busLabel}`;
-            routeSummary.innerHTML = `
-                <span class="route-chip">${trafficLabel}</span>
-                <span class="route-chip">${busLabel}</span>
-                <span class="route-chip">${currentDistance ? currentDistance.toFixed(1) : '--'} km</span>
-            `;
         }
 
         function updateAvailableBuses() {
@@ -992,7 +977,6 @@
                 routeOverview.textContent = 'Unable to compute route';
                 estimatedFare.textContent = 'Select stops to calculate fare';
                 activeSegments = [];
-                routeSummary.innerHTML = '';
                 renderEdges();
             });
         }
