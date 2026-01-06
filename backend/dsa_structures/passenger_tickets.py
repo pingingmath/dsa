@@ -230,7 +230,7 @@ class RoutePlanner:
         if not self.validate_stop(start) or not self.validate_stop(end):
             return None
         if start == end:
-            return {"path": [start], "distance": 0.0}
+            return {"path": [start], "distance": 0.0, "segments": []}
 
         distances: Dict[str, float] = {stop: float("inf") for stop in self.graph.adj}
         previous: Dict[str, Optional[str]] = {start: None}
@@ -266,7 +266,21 @@ class RoutePlanner:
             current = previous.get(current)
         path_nodes.reverse()
 
-        return {"path": path_nodes, "distance": distances[end]}
+        segments: List[Dict[str, Any]] = []
+        for index in range(len(path_nodes) - 1):
+            from_stop = path_nodes[index]
+            to_stop = path_nodes[index + 1]
+            segments.append({
+                "from": from_stop,
+                "to": to_stop,
+                "weight": self.graph.weight(from_stop, to_stop),
+            })
+
+        return {
+            "path": path_nodes,
+            "distance": distances[end],
+            "segments": segments,
+        }
 
 
 class TicketStore:

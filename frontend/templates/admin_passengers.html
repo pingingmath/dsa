@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Tickets - Smart Transport Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --header-height: 70px;
+            --primary: #0d9488;
+            --primary-dark: #0f766e;
+            --muted: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fb;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .nav-links {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-left-color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .header {
+            height: var(--header-height);
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .header-left h1 {
+            font-size: 1.8rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        .content-area {
+            padding: 30px;
+            display: grid;
+            gap: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+        }
+
+        .stat-card h3 {
+            font-size: 1.6rem;
+            color: #0f766e;
+            margin-bottom: 6px;
+        }
+
+        .passenger-table {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .route-path {
+            color: #475569;
+            font-size: 0.85rem;
+        }
+
+        .bus-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .bus-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .bus-card img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .bus-card .bus-info {
+            padding: 12px 14px;
+        }
+
+        .bus-card h4 {
+            margin-bottom: 4px;
+            color: #0f766e;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--muted);
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Transport Hub</h2>
+            <p>Administrator Panel</p>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin_passengers') }}" class="nav-item active">
+                <i class="fas fa-users"></i>
+                <span>Passengers</span>
+            </a>
+            <a href="{{ url_for('admin_bus_management') }}" class="nav-item">
+                <i class="fas fa-bus"></i>
+                <span>Bus Management</span>
+            </a>
+            <a href="{{ url_for('sim_dashboard') }}" class="nav-item">
+                <i class="fas fa-project-diagram"></i>
+                <span>Simulation</span>
+            </a>
+            <a href="{{ url_for('admin_routes') }}" class="nav-item">
+                <i class="fas fa-route"></i>
+                <span>Routes</span>
+            </a>
+            <a href="{{ url_for('admin_analytics') }}" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div class="header-left">
+                <h1>Passenger Tickets</h1>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>{{ stats.total_passengers }}</h3>
+                    <p>Total Passengers</p>
+                </div>
+                <div class="stat-card">
+                    <h3>{{ stats.total_tickets }}</h3>
+                    <p>Total Tickets</p>
+                </div>
+            </div>
+
+            <div class="bus-gallery">
+                <div class="bus-card">
+                    <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80" alt="AI bus">
+                    <div class="bus-info">
+                        <h4>AI Fleet Concept</h4>
+                        <p>Smart mobility for modern cities.</p>
+                    </div>
+                </div>
+                <div class="bus-card">
+                    <img src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=800&q=80" alt="AI bus">
+                    <div class="bus-info">
+                        <h4>Electric Bus Vision</h4>
+                        <p>Quiet, efficient, and connected rides.</p>
+                    </div>
+                </div>
+                <div class="bus-card">
+                    <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" alt="AI bus">
+                    <div class="bus-info">
+                        <h4>Futuristic Transit</h4>
+                        <p>AI-assisted routing and comfort.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="passenger-table">
+                <h3>Passenger Ticket List</h3>
+                {% if tickets and tickets|length > 0 %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Passenger</th>
+                                <th>Contact</th>
+                                <th>Route</th>
+                                <th>Bus</th>
+                                <th>Bus Timing</th>
+                                <th>Fare</th>
+                                <th>Ticket ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in tickets %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ ticket.passenger_name }}</strong><br>
+                                        <span>{{ ticket.passenger_email or 'N/A' }}</span>
+                                    </td>
+                                    <td>{{ ticket.passenger_phone or 'N/A' }}</td>
+                                    <td>
+                                        {{ ticket.from_stop }} → {{ ticket.to_stop }}
+                                        <div class="route-path">{{ ticket.route_path | join(' → ') }}</div>
+                                    </td>
+                                    <td>Bus {{ ticket.bus_number }}</td>
+                                    <td>{{ ticket.bus_timing or 'TBD' }}</td>
+                                    <td>Rs. {{ ticket.fare }}</td>
+                                    <td>{{ ticket.ticket_id }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="empty-state">No passenger tickets found yet.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

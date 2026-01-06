@@ -25,6 +25,8 @@ users_file = os.path.join(data_dir, 'users.json')
 config_file = os.path.join(data_dir, 'config.json')
 
 sim_file = os.path.join(data_dir, 'sim_distances.json')
+journeys_file = os.path.join(data_dir, 'journeys.json')
+travel_history_file = os.path.join(data_dir, 'travel_history.json')
 
 
 # Ensure data directory exists
@@ -68,6 +70,83 @@ def _sim_write(data):
         json.dump(data, f, indent=2)
     os.replace(tmp, sim_file)
 
+def _journey_init_file():
+    if not os.path.exists(journeys_file):
+        os.makedirs(os.path.dirname(journeys_file), exist_ok=True)
+        with open(journeys_file, "w", encoding="utf-8") as f:
+            json.dump({"journeys": []}, f, indent=2)
+
+def _journey_read():
+    _journey_init_file()
+    return _read_json_file(journeys_file, {"journeys": []})
+
+def _journey_write(data):
+    os.makedirs(os.path.dirname(journeys_file), exist_ok=True)
+    tmp = journeys_file + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, journeys_file)
+
+def _travel_history_init():
+    if not os.path.exists(travel_history_file):
+        os.makedirs(os.path.dirname(travel_history_file), exist_ok=True)
+        with open(travel_history_file, "w", encoding="utf-8") as f:
+            json.dump({"history": []}, f, indent=2)
+
+def _travel_history_read():
+    _travel_history_init()
+    return _read_json_file(travel_history_file, {"history": []})
+
+def _travel_history_write(data):
+    os.makedirs(os.path.dirname(travel_history_file), exist_ok=True)
+    tmp = travel_history_file + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, travel_history_file)
+
+def _record_travel_history(ticket, bus):
+    data = _travel_history_read()
+    history = data.get("history", [])
+    history.insert(0, {
+        "ticket_id": ticket.get("ticket_id"),
+        "passenger_id": ticket.get("passenger_id"),
+        "passenger_name": ticket.get("passenger_name"),
+        "from_stop": ticket.get("from_stop"),
+        "to_stop": ticket.get("to_stop"),
+        "path": ticket.get("path", []),
+        "distance": ticket.get("distance"),
+        "fare": ticket.get("fare"),
+        "bus_number": ticket.get("bus_number"),
+        "bus_type": bus.get("type") if bus else None,
+        "route_name": bus.get("route_name") if bus else None,
+        "created_at": ticket.get("created_at"),
+    })
+    data["history"] = history
+    _travel_history_write(data)
+
+def _journey_total_distance(segments):
+    return sum(float(segment.get("distance") or 0) for segment in segments)
+
+def _journey_position(segments, distance_covered):
+    remaining = max(distance_covered, 0.0)
+    for index, segment in enumerate(segments):
+        segment_distance = float(segment.get("distance") or 0)
+        if remaining <= segment_distance:
+            progress = 0.0 if segment_distance == 0 else remaining / segment_distance
+            return {
+                "segment_index": index,
+                "from": segment.get("from"),
+                "to": segment.get("to"),
+                "segment_progress": progress,
+            }
+        remaining -= segment_distance
+    last = segments[-1] if segments else None
+    return {
+        "segment_index": len(segments) - 1,
+        "from": last.get("from") if last else None,
+        "to": last.get("to") if last else None,
+        "segment_progress": 1.0,
+    }
 def _load_routes_raw():
     """Read your existing routes.json schema safely"""
     if not os.path.exists(routes_file):
@@ -85,6 +164,49 @@ def _write_json_file(file_path, data):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
+
+def _load_buses_raw():
+    data = _read_json_file(buses_file, [])
+    if isinstance(data, dict):
+        return data.get("buses", [])
+    return data
+
+def _bus_route_counts(buses):
+    counts = {}
+    name_counts = {}
+    for bus in buses:
+        route_id = str(bus.get("route_id") or "").strip()
+        route_name = str(bus.get("route_name") or "").strip()
+        if route_id:
+            counts[route_id] = counts.get(route_id, 0) + 1
+        if route_name:
+            name_counts[route_name] = name_counts.get(route_name, 0) + 1
+    return counts, name_counts
+
+def _traffic_level(bus_count):
+    if bus_count > 1:
+        return "high"
+    if bus_count == 1:
+        return "medium"
+    return "low"
+
+def _update_bus_passengers(bus_number, delta):
+    data = _read_json_file(buses_file, [])
+    buses = data.get("buses", []) if isinstance(data, dict) else data
+    updated = False
+    for bus in buses:
+        if str(bus.get("bus_number")) == str(bus_number):
+            current = int(bus.get("current_passengers") or 0)
+            bus["current_passengers"] = max(0, current + delta)
+            updated = True
+            break
+    if updated:
+        if isinstance(data, dict):
+            data["buses"] = buses
+        else:
+            data = buses
+        _write_json_file(buses_file, data)
+    return updated
 
 def _record_action(file_path, before, after, description):
     action_history.push({
@@ -835,6 +957,51 @@ def admin_analytics():
 
     return render_template('admin_analytics.html')
 
+
+@app.route('/admin/passengers')
+def admin_passengers():
+    if not session.get('logged_in'):
+        flash('Please login first!', 'error')
+        return redirect(url_for('login'))
+    if session.get('user_type') != 'admin':
+        flash('Access denied! Admin privileges required.', 'error')
+        return redirect(url_for('passenger_dashboard'))
+
+    ticket_store._load()
+    tickets = ticket_store.tickets
+    passengers = [u for u in user_manager.get_all_users() if u.get('role') == 'passenger']
+    bus_lookup = {str(b.get('bus_number')): b for b in bus_store.list_buses()}
+
+    ticket_rows = []
+    for ticket in tickets:
+        passenger = next((p for p in passengers if p.get('user_id') == ticket.get('passenger_id')), {})
+        bus_number = str(ticket.get('bus_number') or '')
+        bus = bus_lookup.get(bus_number, {})
+        ticket_rows.append({
+            "ticket_id": ticket.get("ticket_id"),
+            "passenger_name": passenger.get("full_name") or ticket.get("passenger_name"),
+            "passenger_email": passenger.get("email"),
+            "passenger_phone": passenger.get("phone"),
+            "from_stop": ticket.get("from_stop"),
+            "to_stop": ticket.get("to_stop"),
+            "route_path": ticket.get("path", []),
+            "bus_number": bus_number,
+            "bus_timing": bus.get("next_arrival") or bus.get("start_time") or ticket.get("eta"),
+            "fare": ticket.get("fare"),
+            "created_at": ticket.get("created_at"),
+        })
+
+    stats = {
+        "total_passengers": len(passengers),
+        "total_tickets": len(tickets),
+    }
+
+    return render_template(
+        'admin_passengers.html',
+        tickets=ticket_rows,
+        stats=stats,
+    )
+
 @app.route('/admin/simulation')
 def sim_dashboard():
     """Simulation dashboard (Admin only)"""
@@ -1142,6 +1309,40 @@ def passenger_dashboard():
     }
     
     return render_template('passenger_dashboard.html', user=user_data)
+
+
+@app.route('/passenger/profile')
+def passenger_profile():
+    if not session.get('logged_in'):
+        flash('Please login first!', 'error')
+        return redirect(url_for('login'))
+    if session.get('user_type') != 'passenger':
+        flash('Passenger access only!', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+    user_data = {
+        'username': session.get('username'),
+        'email': session.get('email'),
+        'phone': session.get('phone'),
+        'full_name': session.get('full_name', 'Passenger'),
+        'login_time': session.get('login_time'),
+    }
+    return render_template('passenger_profile.html', user=user_data)
+
+
+@app.route('/passenger/travel_history')
+def passenger_travel_history():
+    if not session.get('logged_in'):
+        flash('Please login first!', 'error')
+        return redirect(url_for('login'))
+    if session.get('user_type') != 'passenger':
+        flash('Passenger access only!', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+    passenger_id = session.get('user_id', '')
+    history = _travel_history_read().get("history", [])
+    passenger_history = [h for h in history if h.get("passenger_id") == passenger_id]
+    return render_template('passenger_travel_history.html', user=session, history=passenger_history)
 
 @app.route('/logout')
 def logout():
@@ -1880,9 +2081,22 @@ def passenger_graph():
         return jsonify({'error': 'Passenger access only'}), 403
 
     route_planner.reload()
+    buses = _load_buses_raw()
+    route_counts, route_name_counts = _bus_route_counts(buses)
+    edges = []
+    for edge in route_planner.list_edges():
+        route_id = edge.get("route_id")
+        bus_count = route_counts.get(str(route_id), 0) if route_id else 0
+        edges.append({
+            **edge,
+            "bus_count": bus_count,
+            "traffic": _traffic_level(bus_count),
+        })
     return jsonify({
         'stops': route_planner.list_stops(),
-        'edges': route_planner.list_edges(),
+        'edges': edges,
+        'route_bus_counts': route_counts,
+        'route_name_counts': route_name_counts,
     })
 
 
@@ -1914,10 +2128,168 @@ def passenger_route():
     result = route_planner.shortest_path(start, end)
     if not result:
         return jsonify({'error': 'No route found between selected stops'}), 400
+
+    edges = route_planner.list_edges()
+    route_votes = {}
+    route_name_votes = {}
+    segments = []
+    for segment in result.get("segments", []):
+        match = next(
+            (
+                edge
+                for edge in edges
+                if (edge.get("from") == segment["from"] and edge.get("to") == segment["to"])
+                or (edge.get("from") == segment["to"] and edge.get("to") == segment["from"])
+            ),
+            None,
+        )
+        route_id = match.get("route_id") if match else None
+        route_name = match.get("route_name") if match else None
+        if route_id:
+            route_votes[route_id] = route_votes.get(route_id, 0) + 1
+        if route_name:
+            route_name_votes[route_name] = route_name_votes.get(route_name, 0) + 1
+        segments.append({
+            "from": segment["from"],
+            "to": segment["to"],
+            "distance": segment["weight"],
+            "route_id": route_id,
+            "route_name": route_name,
+        })
+
+    buses = _load_buses_raw()
+    route_counts, _ = _bus_route_counts(buses)
+    route_id = max(route_votes, key=route_votes.get) if route_votes else None
+    route_name = max(route_name_votes, key=route_name_votes.get) if route_name_votes else "Route"
+    bus_count = route_counts.get(str(route_id), 0) if route_id else 0
+
     return jsonify({
         'path': result['path'],
         'distance': result['distance'],
         'stops': len(result['path']) - 1,
+        'route_id': route_id,
+        'route_name': route_name,
+        'bus_count': bus_count,
+        'traffic': _traffic_level(bus_count),
+        'segments': segments,
+    })
+
+
+@app.route('/api/passenger/journey/start', methods=['POST'])
+def passenger_start_journey():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+    if session.get('user_type') != 'passenger':
+        return jsonify({'error': 'Passenger access only'}), 403
+
+    payload = request.get_json(force=True, silent=True) or {}
+    start = (payload.get('start_stop') or '').strip()
+    end = (payload.get('end_stop') or '').strip()
+    bus_number = (payload.get('bus_number') or '').strip()
+
+    route_planner.reload()
+    if not route_planner.validate_stop(start) or not route_planner.validate_stop(end):
+        return jsonify({'error': 'Invalid stops supplied'}), 400
+
+    result = route_planner.shortest_path(start, end)
+    if not result:
+        return jsonify({'error': 'No route found between selected stops'}), 400
+
+    bus = None
+    speed_kph = 30.0
+    if bus_number:
+        bus = next((b for b in bus_store.list_buses() if str(b.get('bus_number')) == bus_number), None)
+        if not bus:
+            return jsonify({'error': 'Selected bus is not available'}), 400
+        speed_kph = float(bus.get('speed_kph') or speed_kph)
+
+    journey_id = str(uuid.uuid4())
+    created_at = datetime.utcnow().isoformat()
+    segments = [
+        {
+            "from": segment["from"],
+            "to": segment["to"],
+            "distance": segment["weight"],
+        }
+        for segment in result.get("segments", [])
+    ]
+    journey = {
+        "journey_id": journey_id,
+        "passenger_id": session.get('user_id', ''),
+        "start_stop": start,
+        "end_stop": end,
+        "bus_number": bus_number,
+        "bus_type": bus.get("type") if bus else None,
+        "speed_kph": speed_kph,
+        "path": result["path"],
+        "segments": segments,
+        "distance": result["distance"],
+        "status": "in_transit",
+        "start_time": created_at,
+        "last_updated": created_at,
+    }
+
+    data = _journey_read()
+    journeys = data.get("journeys", [])
+    journeys.append(journey)
+    data["journeys"] = journeys
+    _journey_write(data)
+
+    return jsonify({
+        "journey": journey,
+    }), 201
+
+
+@app.route('/api/passenger/journey/status')
+def passenger_journey_status():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+    if session.get('user_type') != 'passenger':
+        return jsonify({'error': 'Passenger access only'}), 403
+
+    journey_id = (request.args.get("journey_id") or "").strip()
+    if not journey_id:
+        return jsonify({'error': 'Journey id is required'}), 400
+
+    data = _journey_read()
+    journeys = data.get("journeys", [])
+    journey = next((j for j in journeys if j.get("journey_id") == journey_id), None)
+    if not journey:
+        return jsonify({'error': 'Journey not found'}), 404
+    if journey.get("passenger_id") != session.get('user_id', ''):
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    start_time = journey.get("start_time")
+    if start_time:
+        start_dt = datetime.fromisoformat(start_time)
+    else:
+        start_dt = datetime.utcnow()
+    elapsed_minutes = max((datetime.utcnow() - start_dt).total_seconds() / 60, 0)
+    speed_kph = float(journey.get("speed_kph") or 30.0)
+    distance_covered = speed_kph * (elapsed_minutes / 60)
+    total_distance = _journey_total_distance(journey.get("segments", []))
+    distance_covered = min(distance_covered, total_distance)
+
+    position = _journey_position(journey.get("segments", []), distance_covered)
+    remaining_distance = max(total_distance - distance_covered, 0)
+    remaining_minutes = (remaining_distance / speed_kph) * 60 if speed_kph > 0 else 0
+    status = "approaching_destination" if remaining_distance <= 0.2 else "in_transit"
+
+    journey["status"] = status
+    journey["last_updated"] = datetime.utcnow().isoformat()
+    journey["distance_covered"] = round(distance_covered, 2)
+    journey["remaining_distance"] = round(remaining_distance, 2)
+    data["journeys"] = journeys
+    _journey_write(data)
+
+    return jsonify({
+        "journey_id": journey_id,
+        "status": status,
+        "position": position,
+        "remaining_distance": remaining_distance,
+        "remaining_minutes": remaining_minutes,
+        "distance_covered": distance_covered,
+        "total_distance": total_distance,
     })
 
 
@@ -1951,9 +2323,13 @@ def passenger_tickets_api():
     bus = next((b for b in bus_store.list_buses() if str(b.get('bus_number')) == bus_number), None)
     if not bus:
         return jsonify({'error': 'Selected bus is not available'}), 400
+    capacity = int(bus.get('capacity') or 0)
+    current_passengers = int(bus.get('current_passengers') or 0)
+    if capacity and current_passengers >= capacity:
+        return jsonify({'error': 'Selected bus is full'}), 400
 
     distance = result['distance']
-    fare_rate = 2.5
+    fare_rate = 3.5 if bus.get('type') == 'air_conditioned' else 2.5
     fare = max(round(distance * fare_rate, 2), 10.0)
     eta = bus.get('next_arrival')
 
@@ -1968,6 +2344,8 @@ def passenger_tickets_api():
         distance=distance,
         eta=eta,
     )
+    _update_bus_passengers(bus_number, 1)
+    _record_travel_history(ticket, bus)
     return jsonify({'ticket': ticket}), 201
 
 
