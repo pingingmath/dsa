@@ -27,7 +27,6 @@ config_file = os.path.join(data_dir, 'config.json')
 sim_file = os.path.join(data_dir, 'sim_distances.json')
 journeys_file = os.path.join(data_dir, 'journeys.json')
 favorites_file = os.path.join(data_dir, 'favorites.json')
-travel_history_file = os.path.join(data_dir, 'travel_history.json')
 
 
 # Ensure data directory exists
@@ -88,23 +87,6 @@ def _journey_write(data):
         json.dump(data, f, indent=2)
     os.replace(tmp, journeys_file)
 
-def _travel_history_init_file():
-    if not os.path.exists(travel_history_file):
-        os.makedirs(os.path.dirname(travel_history_file), exist_ok=True)
-        with open(travel_history_file, "w", encoding="utf-8") as f:
-            json.dump({"history": []}, f, indent=2)
-
-def _travel_history_read():
-    _travel_history_init_file()
-    return _read_json_file(travel_history_file, {"history": []})
-
-def _travel_history_write(data):
-    os.makedirs(os.path.dirname(travel_history_file), exist_ok=True)
-    tmp = travel_history_file + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-    os.replace(tmp, travel_history_file)
-
 def _favorites_init_file():
     if not os.path.exists(favorites_file):
         os.makedirs(os.path.dirname(favorites_file), exist_ok=True)
@@ -121,23 +103,6 @@ def _favorites_write(data):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
     os.replace(tmp, favorites_file)
-
-def _config_init_file():
-    if not os.path.exists(config_file):
-        os.makedirs(os.path.dirname(config_file), exist_ok=True)
-        with open(config_file, "w", encoding="utf-8") as f:
-            json.dump({"admin_theme": "default"}, f, indent=2)
-
-def _config_read():
-    _config_init_file()
-    return _read_json_file(config_file, {"admin_theme": "default"})
-
-def _config_write(data):
-    os.makedirs(os.path.dirname(config_file), exist_ok=True)
-    tmp = config_file + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-    os.replace(tmp, config_file)
 
 def _journey_total_distance(segments):
     return sum(float(segment.get("distance") or 0) for segment in segments)
