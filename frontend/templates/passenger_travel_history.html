@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel History - Smart Transport Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --header-height: 70px;
+            --primary: #0d9488;
+            --primary-dark: #0f766e;
+            --muted: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fb;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .nav-links {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-left-color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .header {
+            height: var(--header-height);
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .header-left h1 {
+            font-size: 1.8rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        .history-card {
+            background: white;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .history-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        .history-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-route {
+            font-weight: 700;
+            color: #0f766e;
+        }
+
+        .history-meta {
+            color: var(--muted);
+            font-size: 0.9rem;
+            display: grid;
+            gap: 6px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--muted);
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+
+            .nav-item span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Welcome!</h2>
+            <p>{{ user.full_name }}</p>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('passenger_dashboard') }}" class="nav-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('passenger_my_tickets') }}" class="nav-item">
+                <i class="fas fa-ticket-alt"></i>
+                <span>My Tickets</span>
+            </a>
+            <a href="{{ url_for('passenger_plan_journey') }}" class="nav-item">
+                <i class="fas fa-route"></i>
+                <span>Find Route</span>
+            </a>
+            <a href="{{ url_for('passenger_live_tracking') }}" class="nav-item">
+                <i class="fas fa-bus"></i>
+                <span>Live Tracking</span>
+            </a>
+            <a href="{{ url_for('passenger_travel_history') }}" class="nav-item active">
+                <i class="fas fa-history"></i>
+                <span>Travel History</span>
+            </a>
+            <a href="{{ url_for('passenger_profile') }}" class="nav-item">
+                <i class="fas fa-user-cog"></i>
+                <span>My Profile</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div class="header-left">
+                <h1>Travel History</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-avatar">{{ user.full_name[0] if user.full_name else 'U' }}</div>
+                <button class="logout-btn" id="logoutButton">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="history-card">
+                {% if history and history|length > 0 %}
+                    {% for item in history %}
+                        <div class="history-item">
+                            <div class="history-header">
+                                <div class="history-route">{{ item.from_stop }} → {{ item.to_stop }}</div>
+                                <div>{{ item.created_at }}</div>
+                            </div>
+                            <div class="history-meta">
+                                <div><strong>Ticket:</strong> {{ item.ticket_id }}</div>
+                                <div><strong>Bus:</strong> {{ item.bus_number }} {% if item.bus_type %}({{ item.bus_type }}){% endif %}</div>
+                                <div><strong>Route:</strong> {{ item.route_name or 'Route' }}</div>
+                                <div><strong>Distance:</strong> {{ item.distance }} km</div>
+                                <div><strong>Fare:</strong> Rs. {{ item.fare }}</div>
+                                <div><strong>Path:</strong> {{ item.path | join(' → ') }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">No travel history yet. Book a ticket to see your trips here.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('logoutButton')?.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '{{ url_for("logout") }}';
+            }
+        });
+    </script>
+</body>
+</html>
