@@ -924,7 +924,27 @@ def admin_dashboard():
         'active_buses': bus_stats['active_buses']
     }
     
-    return render_template('admin_dashboard.html', stats=stats)
+    config = _config_read()
+    return render_template('admin_dashboard.html', stats=stats, admin_theme=config.get('admin_theme', 'default'))
+
+@app.route('/admin/settings', methods=['GET', 'POST'])
+def admin_settings():
+    if not session.get('logged_in'):
+        flash('Please login first!', 'error')
+        return redirect(url_for('login'))
+    if session.get('user_type') != 'admin':
+        flash('Access denied! Admin privileges required.', 'error')
+        return redirect(url_for('passenger_dashboard'))
+
+    config = _config_read()
+    if request.method == 'POST':
+        theme = (request.form.get('admin_theme') or 'default').strip()
+        config['admin_theme'] = theme
+        _config_write(config)
+        flash('Settings updated successfully.', 'success')
+        return redirect(url_for('admin_settings'))
+
+    return render_template('admin_settings.html', admin_theme=config.get('admin_theme', 'default'))
 
 @app.route('/admin/analytics')
 def admin_analytics():
