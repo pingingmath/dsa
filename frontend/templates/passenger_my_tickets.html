@@ -638,16 +638,8 @@
                             <div id="selectedEnd">Select an end stop</div>
                         </div>
                         <div class="field">
-                            <div class="label">Select Route (Optional)</div>
-                            <select id="routeSelect" class="route-select">
-                                <option value="">Show all routes</option>
-                            </select>
-                            <div class="route-stops" id="routeStops">Stops: --</div>
-                        </div>
-                        <div class="field">
                             <div class="label">Route Overview</div>
                             <div id="routeOverview">Waiting for selections</div>
-                            <div class="route-summary" id="routeSummary"></div>
                         </div>
                         <div class="field">
                             <div class="label">Computed Route</div>
@@ -692,10 +684,7 @@
         const mapContainer = document.getElementById('mapContainer');
         const selectedStart = document.getElementById('selectedStart');
         const selectedEnd = document.getElementById('selectedEnd');
-        const routeSelect = document.getElementById('routeSelect');
-        const routeStops = document.getElementById('routeStops');
         const routeOverview = document.getElementById('routeOverview');
-        const routeSummary = document.getElementById('routeSummary');
         const selectedRoute = document.getElementById('selectedRoute');
         const busSelect = document.getElementById('busSelect');
         const busMeta = document.getElementById('busMeta');
@@ -712,7 +701,6 @@
         let edges = [];
         let routeBusCounts = {};
         let routeNameCounts = {};
-        let routeSummaries = [];
         let markers = [];
         let stopPositions = new Map();
         let startStop = null;
@@ -723,7 +711,6 @@
         let activeTraffic = null;
         let activeBusCount = 0;
         let activeSegments = [];
-        let activeRouteFilter = '';
         let buses = [];
 
         function confirmLogout() {
@@ -744,25 +731,13 @@
             activeBusCount = 0;
             activeSegments = [];
             busSelect.value = '';
-            if (routeSelect) {
-                routeSelect.value = '';
-            }
-            activeRouteFilter = '';
             updateSelectionUI();
             routeOverview.textContent = 'Waiting for selections';
-            routeSummary.innerHTML = '';
             selectedRoute.textContent = 'Waiting for selections';
             estimatedFare.textContent = 'Select stops to calculate fare';
             updateMarkers();
-            updateRouteStops();
             renderEdges();
             updateAvailableBuses();
-        });
-
-        routeSelect?.addEventListener('change', () => {
-            activeRouteFilter = routeSelect.value;
-            updateRouteStops();
-            renderEdges();
         });
 
         createTicketBtn.addEventListener('click', () => {
@@ -794,7 +769,6 @@
                 activeSegments = [];
                 updateSelectionUI();
                 routeOverview.textContent = 'Ticket created successfully.';
-                routeSummary.innerHTML = '';
                 selectedRoute.textContent = 'Ticket created successfully.';
                 estimatedFare.textContent = 'Select stops to calculate fare';
                 loadTickets();
@@ -852,10 +826,7 @@
                     edges = data.edges || [];
                     routeBusCounts = data.route_bus_counts || {};
                     routeNameCounts = data.route_name_counts || {};
-                    buildRouteSummaries();
-                    renderRouteOptions();
-                    renderRoutesList();
-                    scheduleMapRender();
+                    renderMap();
                 })
                 .catch(() => {
                     mapContainer.textContent = 'Unable to load stops.';
@@ -938,9 +909,6 @@
             mapLines.innerHTML = '';
             mapLines.setAttribute('viewBox', `0 0 ${width} ${height}`);
             edges.forEach(edge => {
-                if (activeRouteFilter && edge.route_name !== activeRouteFilter) {
-                    return;
-                }
                 const from = posMap.get(edge.from);
                 const to = posMap.get(edge.to);
                 if (!from || !to) {
@@ -955,14 +923,6 @@
                 if (isActiveEdge(edge.from, edge.to)) {
                     line.classList.add('active-route');
                 }
-                if (activeRouteFilter && edge.route_name === activeRouteFilter) {
-                    line.classList.add('active-route');
-                }
-                const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-                const busCount = edge.bus_count || 0;
-                const traffic = edge.traffic || 'low';
-                title.textContent = `Buses: ${busCount} • Traffic: ${traffic} • Distance: ${edge.weight || edge.distance || 0} km`;
-                line.appendChild(title);
                 mapLines.appendChild(line);
 
                 if (isActiveEdge(edge.from, edge.to)) {
@@ -974,6 +934,90 @@
                     mapLines.appendChild(label);
                 }
             });
+        }
+
+        function isActiveEdge(from, to) {
+            return activeSegments.some(segment =>
+                (segment.from === from && segment.to === to) ||
+                (segment.from === to && segment.to === from)
+            );
+        }
+
+        function showToast(message) {
+            if (!mapToast) {
+                return;
+            }
+            mapToast.textContent = message;
+            mapToast.classList.add('show');
+            setTimeout(() => mapToast.classList.remove('show'), 2400);
+        }
+
+        function formatTrafficLabel(level) {
+            if (level === 'high') return 'High traffic';
+            if (level === 'medium') return 'Medium traffic';
+            return 'Low traffic';
+        }
+
+        function updateRouteOverview() {
+            if (!activeRouteName) {
+                routeOverview.textContent = 'Waiting for selections';
+                return;
+            }
+            const trafficLabel = formatTrafficLabel(activeTraffic);
+            const busLabel = activeBusCount ? `${activeBusCount} buses allocated` : 'No buses allocated yet';
+            routeOverview.textContent = `${activeRouteName} • ${trafficLabel} • ${busLabel}`;
+        }
+
+        function updateAvailableBuses() {
+            busSelect.innerHTML = '<option value="">Select a bus</option>';
+            const filtered = activeRouteId
+                ? buses.filter(bus => String(bus.route_id || '') === String(activeRouteId))
+                : buses;
+            if (!filtered.length) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = activeRouteId ? 'No buses allocated to this route' : 'No buses available';
+                option.disabled = true;
+                busSelect.appendChild(option);
+            }
+            filtered.forEach(bus => {
+                const option = document.createElement('option');
+                option.value = bus.bus_number;
+                const isFull = (bus.capacity || 0) && (bus.current_passengers || 0) >= bus.capacity;
+                option.disabled = isFull;
+                option.textContent = `Bus ${bus.bus_number} (${bus.route_name || 'Route'})${isFull ? ' • Full' : ''}`;
+                busSelect.appendChild(option);
+            });
+            if (busSelect.value && !filtered.some(bus => String(bus.bus_number) === busSelect.value)) {
+                busSelect.value = '';
+            }
+            if (!busSelect.value) {
+                busMeta.textContent = 'Arrival time will show here.';
+            }
+            updateSelectionUI();
+            updateFareEstimate();
+        }
+
+        function fareRateForBus(bus) {
+            if (bus && bus.type === 'air_conditioned') {
+                return 3.5;
+            }
+            return 2.5;
+        }
+
+        function updateFareEstimate() {
+            if (!currentDistance) {
+                estimatedFare.textContent = 'Select stops to calculate fare';
+                return;
+            }
+            const bus = buses.find(item => String(item.bus_number) === busSelect.value);
+            if (!bus) {
+                estimatedFare.textContent = 'Select a bus to calculate fare';
+                return;
+            }
+            const rate = fareRateForBus(bus);
+            const fare = Math.max(currentDistance * rate, 10).toFixed(2);
+            estimatedFare.textContent = `Estimated fare: Rs. ${fare}`;
         }
 
         function isActiveEdge(from, to) {
@@ -1176,7 +1220,6 @@
                 routeOverview.textContent = 'Unable to compute route';
                 estimatedFare.textContent = 'Select stops to calculate fare';
                 activeSegments = [];
-                routeSummary.innerHTML = '';
                 renderEdges();
             });
         }
