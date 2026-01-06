@@ -671,7 +671,7 @@
                 <i class="fas fa-history"></i>
                 <span>Travel History</span>
             </a>
-            <a href="{{ url_for('passenger_profile_page') }}" class="nav-item" id="profileNav">
+            <a href="{{ url_for('passenger_profile') }}" class="nav-item" id="profileNav">
                 <i class="fas fa-user-cog"></i>
                 <span>Profile</span>
             </a>
@@ -1167,23 +1167,23 @@
         }
         
         function showMyTickets() {
-            window.location.href = '{{ url_for("passenger_my_tickets") }}';
+            alert('My Tickets feature coming soon!');
         }
         
         function showFindRoute() {
-            window.location.href = '{{ url_for("passenger_plan_journey") }}';
+            alert('Find Route feature coming soon!');
         }
         
         function showLiveTracking() {
-            window.location.href = '{{ url_for("passenger_live_tracking") }}';
+            alert('Live Tracking feature coming soon!');
         }
         
         function showTravelHistory() {
-            window.location.href = '{{ url_for("passenger_travel_history") }}';
+            alert('Travel History feature coming soon!');
         }
         
         function showProfile() {
-            window.location.href = '{{ url_for("passenger_profile_page") }}';
+            alert('Profile feature coming soon!');
         }
 
         // Live tracking setup
@@ -1430,7 +1430,7 @@
         });
         
         function showBookTicket() {
-            window.location.href = '{{ url_for("passenger_book_ticket_page") }}';
+            alert('Book Ticket feature coming soon!');
         }
         
         // Keyboard shortcuts
