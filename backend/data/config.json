@@ -1,0 +1,6 @@
+{
+  "admin_theme": "default",
+  "allow_signups": true,
+  "maintenance_mode": false,
+  "bookings_enabled": true
+}

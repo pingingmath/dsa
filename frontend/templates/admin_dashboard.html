@@ -185,6 +185,32 @@
             margin-bottom: 30px;
             box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
         }
+
+        body[data-theme="ocean"] .sidebar {
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+        }
+
+        body[data-theme="ocean"] .header-left h1 {
+            color: #0f766e;
+        }
+
+        body[data-theme="ocean"] .dashboard-welcome {
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            box-shadow: 0 10px 30px rgba(13, 148, 136, 0.3);
+        }
+
+        body[data-theme="midnight"] .sidebar {
+            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+        }
+
+        body[data-theme="midnight"] .header-left h1 {
+            color: #111827;
+        }
+
+        body[data-theme="midnight"] .dashboard-welcome {
+            background: linear-gradient(135deg, #1f2937, #111827);
+            box-shadow: 0 10px 30px rgba(17, 24, 39, 0.3);
+        }
         
         .dashboard-welcome h2 {
             font-size: 2.5rem;
@@ -577,7 +603,7 @@
         }
     </style>
 </head>
-<body>
+<body data-theme="{{ admin_theme }}">
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
@@ -610,7 +636,7 @@
                 <i class="fas fa-chart-line"></i>
                 <span>Analytics</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="{{ url_for('admin_settings') }}" class="nav-item">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
             </a>
